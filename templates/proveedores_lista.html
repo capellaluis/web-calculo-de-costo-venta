@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block titulo %}Proveedores{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-people-fill"></i> Proveedores</h1>
+    <p class="subtitulo">{{ proveedores|length }} en la lista</p>
+  </div>
+  <a class="btn" href="{{ url_for('proveedores.nuevo') }}"><i class="bi bi-plus-lg"></i> Nuevo proveedor</a>
+</div>
+
+{% if aviso %}
+<div class="tarjeta {{ 'c-alerta' if 'No se puede' in aviso }}" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">
+  {{ aviso }}
+</div>
+{% endif %}
+
+<div class="tarjeta" style="margin-bottom:18px;">
+  <form method="get" style="display:flex; gap:10px; flex-wrap:wrap;">
+    <input type="text" name="q" value="{{ busqueda }}" placeholder="Buscar por nombre, razón social, CUIT/RUT o contacto" style="flex:1; min-width:220px; padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+    <button class="btn" type="submit"><i class="bi bi-search"></i> Buscar</button>
+    {% if busqueda %}<a class="btn btn-borde" href="{{ url_for('proveedores.lista') }}">Limpiar</a>{% endif %}
+  </form>
+</div>
+
+<div class="tarjeta">
+  {% if proveedores %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead>
+        <tr><th>Nombre</th><th>Contacto</th><th>Teléfono</th><th>WhatsApp</th><th>Email</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for p in proveedores %}
+        <tr>
+          <td><a href="{{ url_for('proveedores.ver', proveedor_id=p.id) }}"><strong>{{ p.nombre }}</strong></a>
+            {% if p.razon_social %}<br><span class="subtitulo">{{ p.razon_social }}</span>{% endif %}</td>
+          <td>{{ p.persona_contacto or '' }}</td>
+          <td>{{ p.telefono or '' }}</td>
+          <td>{{ p.whatsapp or '' }}</td>
+          <td>{{ p.email or '' }}</td>
+          <td>
+            <div style="display:flex; gap:6px; justify-content:flex-end;">
+              <a class="btn btn-suave" style="padding:6px 12px;" title="Ver" href="{{ url_for('proveedores.ver', proveedor_id=p.id) }}"><i class="bi bi-eye-fill"></i></a>
+              <a class="btn btn-suave" style="padding:6px 12px;" title="Editar" href="{{ url_for('proveedores.editar', proveedor_id=p.id) }}"><i class="bi bi-pencil-fill"></i></a>
+              <form method="post" action="{{ url_for('proveedores.eliminar', proveedor_id=p.id) }}" style="margin:0;" onsubmit="return confirm('¿Eliminar este proveedor?');">
+                <button class="btn btn-borde" style="padding:6px 12px;" title="Eliminar" type="submit"><i class="bi bi-trash-fill"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-people"></i>
+    {% if busqueda %}No se encontraron proveedores con esa búsqueda{% else %}Aún no hay proveedores. Crea el primero con el botón "Nuevo proveedor"{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{# FIN proveedores_lista.html #}

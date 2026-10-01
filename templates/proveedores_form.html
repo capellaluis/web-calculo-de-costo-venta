@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titulo %}{{ 'Editar proveedor' if editando else 'Nuevo proveedor' }}{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-people-fill"></i> {{ 'Editar proveedor' if editando else 'Nuevo proveedor' }}</h1>
+    <p class="subtitulo">Los campos con * son obligatorios</p>
+  </div>
+  <a class="btn btn-borde" href="{{ url_for('proveedores.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+
+{% if error %}
+<div class="tarjeta c-alerta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ error }}</div>
+{% endif %}
+
+<div class="tarjeta">
+  <form method="post" action="{{ url_for('proveedores.editar', proveedor_id=proveedor_id) if editando else url_for('proveedores.nuevo') }}">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:0 18px;">
+      <div class="campo"><label>Nombre *</label><input type="text" name="nombre" value="{{ datos.nombre }}" required></div>
+      <div class="campo"><label>Razón social</label><input type="text" name="razon_social" value="{{ datos.razon_social }}"></div>
+      <div class="campo"><label>CUIT/RUT</label><input type="text" name="cuit_rut" value="{{ datos.cuit_rut }}"></div>
+      <div class="campo"><label>Persona de contacto</label><input type="text" name="persona_contacto" value="{{ datos.persona_contacto }}"></div>
+      <div class="campo"><label>Teléfono</label><input type="text" name="telefono" value="{{ datos.telefono }}"></div>
+      <div class="campo"><label>WhatsApp</label><input type="text" name="whatsapp" value="{{ datos.whatsapp }}"></div>
+      <div class="campo"><label>Email</label><input type="email" name="email" value="{{ datos.email }}"></div>
+      <div class="campo"><label>Dirección</label><input type="text" name="direccion" value="{{ datos.direccion }}"></div>
+      <div class="campo"><label>Notas</label><textarea name="notas" rows="3">{{ datos.notas }}</textarea></div>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn" type="submit"><i class="bi bi-check-lg"></i> Guardar</button>
+      <a class="btn btn-borde" href="{{ url_for('proveedores.lista') }}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+{# FIN proveedores_form.html #}

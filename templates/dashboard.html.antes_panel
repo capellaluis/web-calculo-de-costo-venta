@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block titulo %}Dashboard{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-house-door-fill"></i> Dashboard</h1>
+    <p class="subtitulo">Resumen de tu negocio</p>
+  </div>
+</div>
+
+<div class="grid-stats">
+  <div class="stat-card c-proveedores">
+    <div class="stat-icono"><i class="bi bi-people-fill"></i></div>
+    <div>
+      <div class="stat-valor">{{ stats.proveedores }}</div>
+      <div class="stat-etiqueta">Proveedores</div>
+    </div>
+  </div>
+  <div class="stat-card c-compras">
+    <div class="stat-icono"><i class="bi bi-cart-fill"></i></div>
+    <div>
+      <div class="stat-valor">{{ stats.compras_mes|moneda }}</div>
+      <div class="stat-etiqueta">Compras del mes</div>
+    </div>
+  </div>
+  <div class="stat-card c-productos">
+    <div class="stat-icono"><i class="bi bi-box-seam-fill"></i></div>
+    <div>
+      <div class="stat-valor">{{ stats.productos }}</div>
+      <div class="stat-etiqueta">Productos</div>
+    </div>
+  </div>
+  <div class="stat-card c-recetas">
+    <div class="stat-icono"><i class="bi bi-egg-fried"></i></div>
+    <div>
+      <div class="stat-valor">{{ stats.recetas }}</div>
+      <div class="stat-etiqueta">Recetas</div>
+    </div>
+  </div>
+  <div class="stat-card c-reportes">
+    <div class="stat-icono"><i class="bi bi-boxes"></i></div>
+    <div>
+      <div class="stat-valor">{{ stats.fabricados }}</div>
+      <div class="stat-etiqueta">Productos fabricados</div>
+    </div>
+  </div>
+  <div class="stat-card c-costos">
+    <div class="stat-icono"><i class="bi bi-currency-dollar"></i></div>
+    <div>
+      <div class="stat-valor">{{ stats.costo_total|moneda }}</div>
+      <div class="stat-etiqueta">Costo total</div>
+    </div>
+  </div>
+</div>
+{# fin parte 1 #}
+
+<div class="grid-graficos">
+  <div class="tarjeta c-compras">
+    <h2><i class="bi bi-graph-up-arrow"></i> Compras por mes</h2>
+    {% if graficos.meses.valores %}
+    <div class="grafico-caja"><canvas id="grafMeses"></canvas></div>
+    {% else %}
+    <div class="estado-vacio"><i class="bi bi-cart"></i>Aún no hay compras registradas</div>
+    {% endif %}
+  </div>
+
+  <div class="tarjeta c-productos">
+    <h2><i class="bi bi-trophy-fill"></i> Productos más comprados</h2>
+    {% if graficos.top.valores %}
+    <div class="grafico-caja"><canvas id="grafTop"></canvas></div>
+    {% else %}
+    <div class="estado-vacio"><i class="bi bi-box-seam"></i>Aún no hay productos comprados</div>
+    {% endif %}
+  </div>
+
+  <div class="tarjeta c-proveedores">
+    <h2><i class="bi bi-pie-chart-fill"></i> Gastos por categoría</h2>
+    {% if graficos.categorias.valores %}
+    <div class="grafico-caja"><canvas id="grafCat"></canvas></div>
+    {% else %}
+    <div class="estado-vacio"><i class="bi bi-pie-chart"></i>Aún no hay gastos para mostrar</div>
+    {% endif %}
+  </div>
+</div>
+{# fin parte 2 #}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chart.umd.js') }}"></script>
+<script>
+  var datos = {{ graficos|tojson }};
+  Chart.defaults.animation = false;
+  Chart.defaults.font.family = "system-ui, -apple-system, 'Segoe UI', sans-serif";
+
+  function dinero(v) {
+    return '$' + Number(v).toLocaleString('es-AR');
+  }
+
+  var cMeses = document.getElementById('grafMeses');
+  if (cMeses) {
+    new Chart(cMeses, {
+      type: 'bar',
+      data: {
+        labels: datos.meses.etiquetas,
+        datasets: [{ data: datos.meses.valores, backgroundColor: '#16a34a', borderRadius: 8 }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { callback: dinero } } }
+      }
+    });
+  }
+
+  var cTop = document.getElementById('grafTop');
+  if (cTop) {
+    new Chart(cTop, {
+      type: 'bar',
+      data: {
+        labels: datos.top.etiquetas,
+        datasets: [{ data: datos.top.valores, backgroundColor: '#ea580c', borderRadius: 8 }]
+      },
+      options: {
+        indexAxis: 'y',
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+      }
+    });
+  }
+
+  var cCat = document.getElementById('grafCat');
+  if (cCat) {
+    new Chart(cCat, {
+      type: 'doughnut',
+      data: {
+        labels: datos.categorias.etiquetas,
+        datasets: [{ data: datos.categorias.valores,
+          backgroundColor: ['#2563eb', '#16a34a', '#ea580c', '#7c3aed', '#0d9488', '#0284c7', '#475569'] }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+  }
+</script>
+{% endblock %}
+{# FIN dashboard.html #}

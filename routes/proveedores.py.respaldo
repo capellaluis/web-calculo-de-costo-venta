@@ -1,0 +1,85 @@
+from flask import Blueprint, render_template, request, redirect, url_for, abort
+
+from database.db import obtener_conexion
+
+bp = Blueprint("proveedores", __name__, url_prefix="/proveedores")
+
+CAMPOS = ["nombre", "razon_social", "cuit_rut", "telefono", "whatsapp",
+          "email", "direccion", "persona_contacto", "notas"]
+
+AVISOS = {
+    "creado": "Proveedor creado correctamente.",
+    "editado": "Cambios guardados correctamente.",
+    "eliminado": "Proveedor eliminado.",
+}
+
+
+def leer_formulario():
+    return {campo: request.form.get(campo, "").strip() for campo in CAMPOS}
+
+
+@bp.route("/")
+def lista():
+    busqueda = request.args.get("q", "").strip()
+    aviso = AVISOS.get(request.args.get("aviso", ""))
+    con = obtener_conexion()
+    try:
+        if busqueda:
+            patron = "%" + busqueda + "%"
+            filas = con.execute(
+                "SELECT * FROM proveedores WHERE nombre LIKE ? "
+                "OR razon_social LIKE ? OR cuit_rut LIKE ? "
+                "OR persona_contacto LIKE ? ORDER BY nombre",
+                (patron, patron, patron, patron),
+            ).fetchall()
+        else:
+            filas = con.execute(
+                "SELECT * FROM proveedores ORDER BY nombre").fetchall()
+    finally:
+        con.close()
+    return render_template("proveedores_lista.html", seccion="proveedores",
+                           proveedores=filas, busqueda=busqueda, aviso=aviso)
+# (aqui termina la parte 1)
+EOFcat > ~/mi_negocio/routes/proveedores.py << 'EOF'
+from flask import Blueprint, render_template, request, redirect, url_for, abort
+
+from database.db import obtener_conexion
+
+bp = Blueprint("proveedores", __name__, url_prefix="/proveedores")
+
+CAMPOS = ["nombre", "razon_social", "cuit_rut", "telefono", "whatsapp",
+          "email", "direccion", "persona_contacto", "notas"]
+
+AVISOS = {
+    "creado": "Proveedor creado correctamente.",
+    "editado": "Cambios guardados correctamente.",
+    "eliminado": "Proveedor eliminado.",
+}
+
+
+def leer_formulario():
+    return {campo: request.form.get(campo, "").strip() for campo in CAMPOS}
+
+
+@bp.route("/")
+def lista():
+    busqueda = request.args.get("q", "").strip()
+    aviso = AVISOS.get(request.args.get("aviso", ""))
+    con = obtener_conexion()
+    try:
+        if busqueda:
+            patron = "%" + busqueda + "%"
+            filas = con.execute(
+                "SELECT * FROM proveedores WHERE nombre LIKE ? "
+                "OR razon_social LIKE ? OR cuit_rut LIKE ? "
+                "OR persona_contacto LIKE ? ORDER BY nombre",
+                (patron, patron, patron, patron),
+            ).fetchall()
+        else:
+            filas = con.execute(
+                "SELECT * FROM proveedores ORDER BY nombre").fetchall()
+    finally:
+        con.close()
+    return render_template("proveedores_lista.html", seccion="proveedores",
+                           proveedores=filas, busqueda=busqueda, aviso=aviso)
+# (aqui termina la parte 1)

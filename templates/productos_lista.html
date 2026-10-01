@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block titulo %}Productos{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-box-seam-fill"></i> Productos</h1>
+    <p class="subtitulo">{{ productos|length }} en la lista</p>
+  </div>
+  <a class="btn" href="{{ url_for('productos.nuevo') }}"><i class="bi bi-plus-lg"></i> Nuevo producto</a>
+</div>
+
+{% if aviso %}
+<div class="tarjeta {{ 'c-alerta' if 'No se puede' in aviso }}" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">
+  {{ aviso }}
+</div>
+{% endif %}
+
+<div class="tarjeta" style="margin-bottom:18px;">
+  <form method="get" style="display:flex; gap:10px; flex-wrap:wrap;">
+    <input type="text" name="q" value="{{ busqueda }}" placeholder="Buscar por nombre o código" style="flex:1; min-width:200px; padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+    <select name="categoria" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+      <option value="">Todas las categorías</option>
+      {% for c in categorias %}
+      <option value="{{ c.nombre }}" {{ 'selected' if c.nombre == categoria }}>{{ c.nombre }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn" type="submit"><i class="bi bi-search"></i> Buscar</button>
+    {% if busqueda or categoria %}<a class="btn btn-borde" href="{{ url_for('productos.lista') }}">Limpiar</a>{% endif %}
+  </form>
+</div>
+
+<div class="tarjeta">
+  {% if productos %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead>
+        <tr><th>Producto</th><th>Categoría</th><th>Precio actual</th><th>Unidad de uso</th><th>Proveedor</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for p in productos %}
+        <tr>
+          <td><a href="{{ url_for('productos.ver', producto_id=p.id) }}"><strong>{{ p.nombre }}</strong></a>
+            {% if p.sku %}<br><span class="subtitulo">Código {{ p.sku }}</span>{% endif %}</td>
+          <td>{% if p.categoria %}<span class="badge">{{ p.categoria }}</span>{% endif %}</td>
+          <td>{{ p.precio_actual|moneda }} / {{ p.unidad_compra }}</td>
+          <td>{{ p.unidad_uso }}</td>
+          <td>{{ p.proveedor or '' }}</td>
+          <td>
+            <div style="display:flex; gap:6px; justify-content:flex-end;">
+              <a class="btn btn-suave" style="padding:6px 12px;" title="Ver" href="{{ url_for('productos.ver', producto_id=p.id) }}"><i class="bi bi-eye-fill"></i></a>
+              <a class="btn btn-suave" style="padding:6px 12px;" title="Editar" href="{{ url_for('productos.editar', producto_id=p.id) }}"><i class="bi bi-pencil-fill"></i></a>
+              <form method="post" action="{{ url_for('productos.eliminar', producto_id=p.id) }}" style="margin:0;" onsubmit="return confirm('¿Eliminar este producto?');">
+                <button class="btn btn-borde" style="padding:6px 12px;" title="Eliminar" type="submit"><i class="bi bi-trash-fill"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-box-seam"></i>
+    {% if busqueda or categoria %}No se encontraron productos con esa búsqueda{% else %}Aún no hay productos. Crea el primero con el botón "Nuevo producto"{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{# FIN productos_lista.html #}

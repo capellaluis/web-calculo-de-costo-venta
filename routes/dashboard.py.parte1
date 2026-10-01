@@ -1,0 +1,35 @@
+from flask import Blueprint, render_template
+
+from database.db import obtener_conexion
+
+bp = Blueprint("dashboard", __name__)
+
+NOMBRES_MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun",
+                 "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+
+
+def etiqueta_mes(texto):
+    # Convierte "2026-09" en "Sep 2026"
+    anio, mes = texto.split("-")
+    return NOMBRES_MESES[int(mes) - 1] + " " + anio
+
+
+@bp.route("/")
+def inicio():
+    con = obtener_conexion()
+    try:
+        def uno(sql):
+            return con.execute(sql).fetchone()[0]
+
+        stats = {
+            "proveedores": uno("SELECT COUNT(*) FROM proveedores"),
+            "compras_mes": uno(
+                "SELECT COALESCE(SUM(total), 0) FROM compras "
+                "WHERE strftime('%Y-%m', fecha) = strftime('%Y-%m', 'now', 'localtime')"
+            ),
+            "productos": uno("SELECT COUNT(*) FROM productos"),
+            "recetas": uno("SELECT COUNT(*) FROM recetas"),
+            "fabricados": uno("SELECT COUNT(*) FROM productos_fabricados"),
+            "costo_total": uno("SELECT COALESCE(SUM(total), 0) FROM compras"),
+        }
+# (aqui termina la parte 1)

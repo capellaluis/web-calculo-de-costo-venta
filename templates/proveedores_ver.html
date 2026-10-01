@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block titulo %}{{ proveedor.nombre }}{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-people-fill"></i> {{ proveedor.nombre }}</h1>
+    <p class="subtitulo">Ficha del proveedor</p>
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn" href="{{ url_for('proveedores.editar', proveedor_id=proveedor.id) }}"><i class="bi bi-pencil-fill"></i> Editar</a>
+    <a class="btn btn-borde" href="{{ url_for('proveedores.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
+  </div>
+</div>
+
+<div class="tarjeta" style="margin-bottom:18px;">
+  <h2><i class="bi bi-person-lines-fill"></i> Datos del proveedor</h2>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px;">
+    <div><div class="stat-etiqueta">Razón social</div><div>{{ proveedor.razon_social or '—' }}</div></div>
+    <div><div class="stat-etiqueta">CUIT/RUT</div><div>{{ proveedor.cuit_rut or '—' }}</div></div>
+    <div><div class="stat-etiqueta">Persona de contacto</div><div>{{ proveedor.persona_contacto or '—' }}</div></div>
+    <div><div class="stat-etiqueta">Teléfono</div><div>{{ proveedor.telefono or '—' }}</div></div>
+    <div><div class="stat-etiqueta">WhatsApp</div><div>{{ proveedor.whatsapp or '—' }}</div></div>
+    <div><div class="stat-etiqueta">Email</div><div>{{ proveedor.email or '—' }}</div></div>
+    <div><div class="stat-etiqueta">Dirección</div><div>{{ proveedor.direccion or '—' }}</div></div>
+    <div><div class="stat-etiqueta">Fecha de creación</div><div>{{ proveedor.creado_en }}</div></div>
+    <div><div class="stat-etiqueta">Notas</div><div>{{ proveedor.notas or '—' }}</div></div>
+  </div>
+</div>
+
+<div class="tarjeta c-compras">
+  <h2><i class="bi bi-cart-fill"></i> Historial de compras</h2>
+  {% if compras %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead><tr><th>Fecha</th><th>Factura o remito</th><th>Total</th></tr></thead>
+      <tbody>
+        {% for c in compras %}
+        <tr><td>{{ c.fecha }}</td><td>{{ c.numero_documento or '—' }}</td><td>{{ c.total|moneda }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-cart"></i>Este proveedor aún no tiene compras registradas</div>
+  {% endif %}
+</div>
+{% endblock %}
+{# FIN proveedores_ver.html #}

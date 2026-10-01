@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block titulo %}{{ producto.nombre }}{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-box-seam-fill"></i> {{ producto.nombre }}</h1>
+    <p class="subtitulo">Ficha del producto</p>
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn" href="{{ url_for('productos.editar', producto_id=producto.id) }}"><i class="bi bi-pencil-fill"></i> Editar</a>
+    <a class="btn btn-borde" href="{{ url_for('productos.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
+  </div>
+</div>
+
+<div class="tarjeta" style="margin-bottom:18px;">
+  <h2><i class="bi bi-info-circle-fill"></i> Datos del producto</h2>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px;">
+    <div><div class="stat-etiqueta">Categoría</div><div>{{ producto.categoria or '—' }}</div></div>
+    <div><div class="stat-etiqueta">Precio actual</div><div><strong>{{ producto.precio_actual|moneda }}</strong> / {{ producto.abrev_compra }}</div></div>
+    <div><div class="stat-etiqueta">Unidad de compra</div><div>{{ producto.unidad_compra }}</div></div>
+    <div><div class="stat-etiqueta">Unidad de uso</div><div>{{ producto.unidad_uso }}</div></div>
+    <div><div class="stat-etiqueta">Proveedor principal</div><div>{{ producto.proveedor or '—' }}</div></div>
+    <div><div class="stat-etiqueta">Código o SKU</div><div>{{ producto.sku or '—' }}</div></div>
+    <div><div class="stat-etiqueta">Fecha de creación</div><div>{{ producto.creado_en }}</div></div>
+    <div><div class="stat-etiqueta">Notas</div><div>{{ producto.notas or '—' }}</div></div>
+  </div>
+</div>
+
+<div class="tarjeta c-costos">
+  <h2><i class="bi bi-graph-up-arrow"></i> Historial de precios</h2>
+  {% if historial %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead><tr><th>Fecha</th><th>Precio</th></tr></thead>
+      <tbody>
+        {% for h in historial %}
+        <tr><td>{{ h.fecha }}</td><td>{{ h.precio_unitario|moneda }} / {{ h.unidad }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-graph-up"></i>Aún no hay precios registrados para este producto</div>
+  {% endif %}
+</div>
+{% endblock %}
+{# FIN productos_ver.html #}

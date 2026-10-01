@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block titulo %}{{ 'Editar producto' if editando else 'Nuevo producto' }}{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-box-seam-fill"></i> {{ 'Editar producto' if editando else 'Nuevo producto' }}</h1>
+    <p class="subtitulo">Los campos con * son obligatorios</p>
+  </div>
+  <a class="btn btn-borde" href="{{ url_for('productos.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+
+{% if error %}
+<div class="tarjeta c-alerta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ error }}</div>
+{% endif %}
+
+<div class="tarjeta">
+  <form method="post" action="{{ url_for('productos.editar', producto_id=producto_id) if editando else url_for('productos.nuevo') }}">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:0 18px;">
+      <div class="campo"><label>Nombre *</label><input type="text" name="nombre" value="{{ datos.nombre }}" required></div>
+      <div class="campo"><label>Categoría</label><input type="text" name="categoria" value="{{ datos.categoria }}" list="lista_categorias" placeholder="Ejemplo: Lácteos"><datalist id="lista_categorias">{% for c in categorias %}<option value="{{ c.nombre }}">{% endfor %}</datalist></div>
+      <div class="campo"><label>Unidad de compra *</label>
+        <select name="unidad_compra_id" required>
+          <option value="">Elegir unidad</option>
+          {% for u in unidades %}
+          <option value="{{ u.id }}" {{ 'selected' if u.id|string == datos.unidad_compra_id }}>{{ u.nombre }} ({{ u.abreviatura }})</option>
+          {% endfor %}
+        </select></div>
+      <div class="campo"><label>Unidad de uso *</label>
+        <select name="unidad_uso_id" required>
+          <option value="">Elegir unidad</option>
+          {% for u in unidades %}
+          <option value="{{ u.id }}" {{ 'selected' if u.id|string == datos.unidad_uso_id }}>{{ u.nombre }} ({{ u.abreviatura }})</option>
+          {% endfor %}
+        </select></div>
+      <div class="campo"><label>Precio actual (por unidad de compra)</label><input type="text" inputmode="decimal" name="precio_actual" value="{{ datos.precio_actual }}" placeholder="1200 o 1200,50"></div>
+      <div class="campo"><label>Proveedor principal</label>
+        <select name="proveedor_principal_id">
+          <option value="">Sin proveedor</option>
+          {% for p in proveedores %}
+          <option value="{{ p.id }}" {{ 'selected' if p.id|string == datos.proveedor_principal_id }}>{{ p.nombre }}</option>
+          {% endfor %}
+        </select></div>
+      <div class="campo"><label>Código o SKU</label><input type="text" name="sku" value="{{ datos.sku }}"></div>
+      <div class="campo"><label>Notas</label><textarea name="notas" rows="3">{{ datos.notas }}</textarea></div>
+    </div>
+    <p class="subtitulo" style="margin-bottom:16px;">La unidad de compra es cómo compras el producto (por ejemplo kg) y la unidad de uso es cómo lo usas en las recetas (por ejemplo g). Deben ser compatibles: kg con g, litro con ml, unidad con docena.</p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn" type="submit"><i class="bi bi-check-lg"></i> Guardar</button>
+      <a class="btn btn-borde" href="{{ url_for('productos.lista') }}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+{# FIN productos_form.html #}

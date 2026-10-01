@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files (Python)
+_pycache_/
+*.pyc
+*$py.class
+
+# Entorno virtual
+venv/
+.venv/
+env/
+
+# Variables de entorno y secretos (¡NUNCA subir a Git!)
+.env
+
+# Archivos de base de datos local (si usas SQLite)
+*.sqlite3
+*.db
+
+# Directorio de pruebas y cobertura
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Archivos del sistema u IDEs
+.vscode/
+.idea/
+.DS_Store
