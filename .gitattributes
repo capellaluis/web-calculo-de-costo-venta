@@ -1,0 +1,11 @@
+# Evita problemas de saltos de linea entre Windows y Linux
+* text=auto
+*.sh  text eol=lf
+*.py  text eol=lf
+*.sql text eol=lf
+*.bat text eol=crlf
+
+# Archivos binarios
+*.db    binary
+*.woff  binary
+*.woff2 binary

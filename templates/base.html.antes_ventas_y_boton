@@ -29,9 +29,6 @@
   <a class="nav-item c-productos{{ ' activo' if seccion == 'productos' }}" href="{{ url_for('productos.lista') }}">
     <i class="bi bi-box-seam-fill"></i><span>Productos</span>
   </a>
-  <a class="nav-item c-ventas{{ ' activo' if seccion == 'ventas' }}" href="#">
-    <i class="bi bi-receipt"></i><span>Ventas</span>
-  </a>
 
   <div class="menu-titulo">Producción</div>
   <a class="nav-item c-recetas{{ ' activo' if seccion == 'recetas' }}" href="#">
@@ -54,6 +51,7 @@
 </nav>
 
 <main class="contenido c-{{ seccion|default('dashboard') }}">
+  <button type="button" class="btn-tema" id="botonTema"><i class="bi bi-moon-stars-fill"></i><span>Modo oscuro</span></button>
   {% block contenido %}{% endblock %}
 </main>
 

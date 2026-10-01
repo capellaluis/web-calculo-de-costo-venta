@@ -27,7 +27,6 @@
 .c-reportes    { --c: #0284c7; --c-suave: #e0f2fe; }
 .c-config      { --c: #475569; --c-suave: #e2e8f0; }
 .c-alerta      { --c: #dc2626; --c-suave: #fee2e2; }
-.c-ventas      { --c: #e11d48; --c-suave: #ffe4e6; }
 
 /* ---------- Base ---------- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -334,7 +333,6 @@ a { color: inherit; text-decoration: none; }
 [data-tema="oscuro"] .c-reportes    { --c: #38bdf8; --c-suave: rgba(56, 189, 248, .16); }
 [data-tema="oscuro"] .c-config      { --c: #94a3b8; --c-suave: rgba(148, 163, 184, .18); }
 [data-tema="oscuro"] .c-alerta      { --c: #f87171; --c-suave: rgba(248, 113, 113, .18); }
-[data-tema="oscuro"] .c-ventas      { --c: #fb7185; --c-suave: rgba(251, 113, 133, .18); }
 
 [data-tema="oscuro"] .nav-item.activo i,
 [data-tema="oscuro"] .btn { color: #0f172a; }
@@ -385,10 +383,10 @@ a { color: inherit; text-decoration: none; }
   padding: 8px 14px;
   border-radius: 999px;
 }
-.contenido.c-dashboard .encabezado { padding-right: 160px; }
+.encabezado { padding-right: 160px; }
 
 @media (max-width: 900px) {
   .btn-tema { top: 18px; right: 14px; margin-left: 0; padding: 6px 10px; }
-  .contenido.c-dashboard .encabezado { padding-right: 56px; }
+  .encabezado { padding-right: 56px; }
 }
 /* FIN boton superior */

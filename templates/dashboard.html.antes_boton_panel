@@ -2,8 +2,6 @@
 {% block titulo %}Panel principal{% endblock %}
 {% block contenido %}
 
-<button type="button" class="btn-tema" id="botonTema"><i class="bi bi-moon-stars-fill"></i><span>Modo oscuro</span></button>
-
 <div class="encabezado">
   <div>
     <h1><i class="bi bi-house-door-fill"></i> Panel principal</h1>
