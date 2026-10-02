@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, abort
 
 from database.db import obtener_conexion
+from services.numeros import leer_precio
 
 bp = Blueprint("productos", __name__, url_prefix="/productos")
 
@@ -65,13 +66,6 @@ def leer_formulario():
     campos = ["nombre", "categoria", "unidad_compra_id", "unidad_uso_id",
               "precio_actual", "proveedor_principal_id", "sku", "notas"]
     return {c: request.form.get(c, "").strip() for c in campos}
-
-
-def leer_precio(texto):
-    texto = texto.replace("$", "").replace(" ", "")
-    if "," in texto:
-        texto = texto.replace(".", "").replace(",", ".")
-    return float(texto or 0)
 
 
 def id_categoria(con, nombre):

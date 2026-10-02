@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block titulo %}Compras{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-cart-fill"></i> Compras</h1>
+    <p class="subtitulo">{{ compras|length }} en la lista</p>
+  </div>
+  <a class="btn" href="{{ url_for('compras.nueva') }}"><i class="bi bi-plus-lg"></i> Nueva compra</a>
+</div>
+
+{% if aviso %}
+<div class="tarjeta {{ 'c-alerta' if aviso == 'error' }}" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">
+  {{ aviso }}
+</div>
+{% endif %}
+
+{% if sin_historial %}
+<div class="tarjeta c-alerta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">
+  La compra se eliminó, pero {{ sin_historial }} producto(s) quedaron sin precios en el historial:
+  se conservó su precio actual. Revisá el precio y actualizalo si hace falta.
+</div>
+{% endif %}
+
+<div class="tarjeta" style="margin-bottom:18px;">
+  <form method="get" style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+    <div>
+      <label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Desde</label>
+      <input type="date" name="desde" value="{{ desde }}" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+    </div>
+    <div>
+      <label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Hasta</label>
+      <input type="date" name="hasta" value="{{ hasta }}" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+    </div>
+    <div>
+      <label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Proveedor</label>
+      <select name="proveedor" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+        <option value="">Todos los proveedores</option>
+        {% for p in proveedores %}
+        <option value="{{ p.id }}" {{ 'selected' if p.id|string == proveedor }}>{{ p.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="btn" type="submit"><i class="bi bi-search"></i> Buscar</button>
+    {% if desde or hasta or proveedor %}<a class="btn btn-borde" href="{{ url_for('compras.lista') }}">Limpiar</a>{% endif %}
+  </form>
+</div>
+
+<div class="tarjeta" style="margin-bottom:18px; display:flex; align-items:center; gap:12px;">
+  <div class="stat-icono"><i class="bi bi-cash-stack"></i></div>
+  <div>
+    <div class="stat-etiqueta">Total del período</div>
+    <div class="stat-valor">{{ total|moneda }}</div>
+  </div>
+</div>
+
+<div class="tarjeta">
+  {% if compras %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead>
+        <tr><th>Fecha</th><th>Proveedor</th><th>Nº de factura/remito</th><th>Observaciones</th><th>Total</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for c in compras %}
+        <tr>
+          <td>{{ c.fecha }}</td>
+          <td><a href="{{ url_for('compras.ver', compra_id=c.id) }}"><strong>{{ c.proveedor }}</strong></a></td>
+          <td>{{ c.numero_documento or '—' }}</td>
+          <td>{{ c.observaciones or '—' }}</td>
+          <td><strong>{{ c.total|moneda }}</strong></td>
+          <td>
+            <div style="display:flex; gap:6px; justify-content:flex-end;">
+              <a class="btn btn-suave" style="padding:6px 12px;" title="Ver" href="{{ url_for('compras.ver', compra_id=c.id) }}"><i class="bi bi-eye-fill"></i></a>
+              <form method="post" action="{{ url_for('compras.eliminar', compra_id=c.id) }}" style="margin:0;" onsubmit="return confirm('¿Eliminar esta compra? Se recalcularán los precios.');">
+                <button class="btn btn-borde" style="padding:6px 12px;" title="Eliminar" type="submit"><i class="bi bi-trash-fill"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-cart"></i>
+    {% if desde or hasta or proveedor %}No hay compras con esos filtros{% else %}Aún no hay compras. Cargá la primera con el botón "Nueva compra"{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{# FIN compras_lista.html #}

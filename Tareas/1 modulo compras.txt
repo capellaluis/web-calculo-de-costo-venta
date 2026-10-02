@@ -1,0 +1,164 @@
+Eres un ingeniero senior de Python/Flask (10 años de experiencia) y buen
+diseñador web. Trabajas con Luis, principiante absoluto, en "MI NEGOCIO"
+(Flask 3 + SQLite + Jinja2, Raspberry Pi 3, Python 3.13, interfaz 100 % en
+español). Dependencias actuales: Flask, openpyxl, python-dotenv, waitress.
+
+== PASO 0: AUDITORÍA (solo lectura, no modifiques nada todavía) ==
+1. Lee COMPLETO `resumen.md` (reglas, fórmulas, protocolo por fases).
+2. Inspecciona el repo real (`git status`, `git log --oneline`, `ls -R` sin venv).
+   El repo manda sobre el resumen, que está desactualizado.
+3. Lee `database/schema.sql`, `database/db.py`, `routes/productos.py`,
+   `routes/proveedores.py`, `routes/dashboard.py`, `templates/base.html`.
+   Averigua y repórtame: (a) cómo se parsea el precio "1200,50" (reutilízalo,
+   no lo dupliques), (b) si todas las consultas son parametrizadas, (c) cómo se
+   cierran las conexiones, (d) cómo se escribe en historial_precios.
+4. Verifica `app.py`: debe leer .env (APP_HOST, APP_PORT, APP_DEBUG, SECRET_KEY),
+   con debug apagado por defecto. Si `app.py` aún tiene `debug=True` y
+   `host="0.0.0.0"` fijos, avísame: existe `app copy.py` con la versión correcta.
+   Pídeme permiso antes de reemplazarlo.
+5. Comprueba que arranca: `python -c "import app"` y `python -m py_compile`.
+6. Pídeme que confirme el checklist de la Fase 6 (sección 7.3 del resumen).
+   NO empieces la Fase 7 hasta que escriba FUNCIONA.
+
+== FASE 7: COMPRAS ==
+Orden obligatorio (lógica primero, pantallas después):
+
+A) `services/unidades.py` + pruebas
+   `convertir(cantidad, desde, hacia)` según sección 6.1 del resumen. Usa
+   Decimal internamente. Pruebas: kg→g=1000, g→kg=0,3, docena→un=12, l→ml=1000,
+   error con tipos distintos y con paquete↔caja.
+
+B) `services/compras.py` + pruebas
+   Una sola transacción (commit al final, rollback ante cualquier error).
+   Referencia de la lógica (adáptala a los nombres reales del schema):
+
+```python
+   from decimal import Decimal, ROUND_HALF_UP
+   from database.db import obtener_conexion
+   from services.unidades import convertir
+
+   class ErrorCompra(ValueError):
+       """Error de validación con mensaje en español para mostrar al usuario."""
+
+   def _q(valor, decimales="0.0001"):
+       return Decimal(valor).quantize(Decimal(decimales), rounding=ROUND_HALF_UP)
+
+   def registrar_compra(proveedor_id, fecha, numero_documento, observaciones, lineas):
+       if not lineas:
+           raise ErrorCompra("Agrega al menos un producto a la compra.")
+       con = obtener_conexion()
+       try:
+           cur = con.execute(
+               "INSERT INTO compras (proveedor_id, fecha, numero_documento, observaciones, total)"
+               " VALUES (?, ?, ?, ?, 0)",
+               (proveedor_id, fecha, numero_documento, observaciones))
+           compra_id = cur.lastrowid
+           total = Decimal("0")
+           for l in lineas:                       # l: producto_id, cantidad, unidad_id, precio_total (Decimal)
+               if l["cantidad"] <= 0 or l["precio_total"] <= 0:
+                   raise ErrorCompra("Cantidad y precio deben ser mayores a cero.")
+               prod = con.execute("SELECT * FROM productos WHERE id = ?", (l["producto_id"],)).fetchone()
+               u_linea = con.execute("SELECT * FROM unidades WHERE id = ?", (l["unidad_id"],)).fetchone()
+               u_compra = con.execute("SELECT * FROM unidades WHERE id = ?", (prod["unidad_compra_id"],)).fetchone()
+               try:
+                   cant_en_u_compra = convertir(l["cantidad"], u_linea, u_compra)
+               except ValueError:
+                   raise ErrorCompra("La unidad elegida no es compatible con la del producto.")
+               precio_unit = _q(l["precio_total"] / cant_en_u_compra)   # $ por unidad de COMPRA del producto
+               det = con.execute(
+                   "INSERT INTO detalle_compras (compra_id, producto_id, cantidad, unidad_id, precio_total, precio_unitario)"
+                   " VALUES (?, ?, ?, ?, ?, ?)",
+                   (compra_id, prod["id"], float(l["cantidad"]), u_linea["id"],
+                    float(l["precio_total"]), float(precio_unit)))
+               ultimo = con.execute(
+                   "SELECT MAX(fecha) FROM historial_precios WHERE producto_id = ?", (prod["id"],)).fetchone()[0]
+               con.execute(
+                   "INSERT INTO historial_precios (producto_id, fecha, precio_unitario, unidad_id, detalle_compra_id)"
+                   " VALUES (?, ?, ?, ?, ?)",
+                   (prod["id"], fecha, float(precio_unit), prod["unidad_compra_id"], det.lastrowid))
+               # Una factura vieja cargada hoy NO debe pisar un precio más reciente:
+               if ultimo is None or fecha >= ultimo:
+                   con.execute("UPDATE productos SET precio_actual = ? WHERE id = ?",
+                               (float(precio_unit), prod["id"]))
+               total += l["precio_total"]
+           con.execute("UPDATE compras SET total = ? WHERE id = ?", (float(total), compra_id))
+           con.commit()
+           return compra_id
+       except Exception:
+           con.rollback()
+           raise
+       finally:
+           con.close()
+```
+
+   Eliminar compra (misma transacción): borrar primero las filas de
+   `historial_precios` ligadas a sus detalles (la FK es SET NULL y quedarían
+   huérfanas), borrar la compra, y recalcular `productos.precio_actual` de cada
+   producto afectado con su registro de historial más reciente (si no queda
+   ninguno, conservar el precio actual y avisarme).
+
+   Pruebas con base TEMPORAL (nunca la real). `tests/conftest.py`:
+
+```python
+   import sqlite3, pytest
+   from pathlib import Path
+   import database.db as dbmod
+
+   @pytest.fixture
+   def db_temporal(tmp_path, monkeypatch):
+       ruta = tmp_path / "test.db"
+       schema = Path(dbmod.__file__).with_name("schema.sql").read_text(encoding="utf-8")
+       con = sqlite3.connect(ruta); con.executescript(schema); con.close()
+       monkeypatch.setattr(dbmod, "RUTA_DB", ruta)
+       return ruta
+```
+   Casos mínimos: 25 kg por $30.000 → $1.200/kg; 500 g por $600 con producto
+   comprado en kg → $1.200/kg; tres compras (1.200, 1.350, 1.500) dejan 3 filas de
+   historial y precio_actual=1.500; compra con fecha anterior NO cambia
+   precio_actual; unidad incompatible → ErrorCompra y rollback completo (cero
+   filas nuevas); eliminar la última compra restaura 1.350.
+   Agrega `requirements-dev.txt` con `pytest>=8,<9` (no lo metas en requirements.txt).
+
+C) `routes/compras.py` + plantillas (color verde de la sección, variables CSS
+   para que se vea bien en modo claro y oscuro, sin colores fijos)
+   - Lista con filtros por fecha y proveedor, total del período.
+   - "Nueva compra": proveedor, fecha (hoy por defecto), nº de factura/remito,
+     observaciones y varias líneas dinámicas. Los campos de línea se envían como
+     listas (`request.form.getlist("producto_id")`, "cantidad", "unidad_id",
+     "precio_total") y se arman así:
+     `lineas = [dict(...) for i, c, u, p in zip(ids, cants, unis, precios) if i]`.
+   - JavaScript simple (sin librerías) para agregar/quitar filas y mostrar el
+     precio unitario calculado y el total mientras se escribe. El servidor
+     recalcula todo igual: nunca confíes en lo que calcula el navegador.
+   - Ver detalle y eliminar (POST + confirmación + aviso). Patrón de las otras
+     rutas: Blueprint, `try/finally`, consultas con `?`, POST + redirect + `?aviso=`.
+   - Activa el enlace "Compras" del menú y confirma que aparezcan en la ficha del
+     proveedor y en el Panel principal (compras del mes y gráficos).
+   - Si de verdad hace falta la equivalencia de paquete/caja, hazla con
+     migración versionada (resumen 5.4) y copia previa de la base. Si no, no la agregues.
+
+CRITERIO DE ACEPTACIÓN (Luis lo prueba en el navegador)
+Distribuidora Sur, Azúcar, 25 kg, $30.000 → muestra $1.200/kg, cambia el precio
+actual del producto y suma una fila al historial. Segunda compra a $1.350/kg y
+tercera a $1.500/kg: quedan los tres precios. La compra aparece en la ficha del
+proveedor y en el Panel principal. Una compra con unidad incompatible muestra un
+aviso rojo y no guarda nada.
+
+REGLAS (no negociables)
+- Solo esta fase. Al terminar, detente y entrega el "Informe de fase" con la
+  plantilla exacta del resumen (1.1), con checklist de prueba concreto.
+- Antes de modificar un archivo existente, haz un commit de Git (no crees más
+  archivos `.antes_*`). Antes de tocar el esquema, copia la base.
+- Interfaz en español sencillo; dinero con el filtro |moneda. Nada de librerías
+  nuevas salvo que sea imprescindible (pregúntame).
+- Ejecuta `pytest`, `py_compile` e `import app` antes de entregar. Muéstrame el
+  resultado real, no lo des por hecho.
+- No borres archivos, datos ni la base sin avisar y pedir permiso. Si algo falla,
+  explica qué significa, por qué pasó y la solución exacta.
+- Nada de facturación ni Rappi hasta cerrar las fases 7 a 16.
+
+AL TERMINAR
+Propón, sin ejecutar, una limpieza: borrar `app copy.py`, `README copy.txt` y los
+`app.py.antes_*`, unificar readme.txt/README, renombrar `resumen.md` a
+`CLAUDE.md` o `AGENTS.md` si mi herramienta lo lee solo, y actualizar el resumen
+con el estado real. Espera mi permiso.

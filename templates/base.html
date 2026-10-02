@@ -23,7 +23,7 @@
   <a class="nav-item c-proveedores{{ ' activo' if seccion == 'proveedores' }}" href="{{ url_for('proveedores.lista') }}">
     <i class="bi bi-people-fill"></i><span>Proveedores</span>
   </a>
-  <a class="nav-item c-compras{{ ' activo' if seccion == 'compras' }}" href="#">
+  <a class="nav-item c-compras{{ ' activo' if seccion == 'compras' }}" href="{{ url_for('compras.lista') }}">
     <i class="bi bi-cart-fill"></i><span>Compras</span>
   </a>
   <a class="nav-item c-productos{{ ' activo' if seccion == 'productos' }}" href="{{ url_for('productos.lista') }}">

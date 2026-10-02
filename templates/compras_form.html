@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block titulo %}Nueva compra{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-cart-fill"></i> Nueva compra</h1>
+    <p class="subtitulo">El precio por unidad se calcula solo. Los campos con * son obligatorios</p>
+  </div>
+  <a class="btn btn-borde" href="{{ url_for('compras.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+
+{% if error %}
+<div class="tarjeta c-alerta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ error }}</div>
+{% endif %}
+
+<div class="tarjeta">
+  <form method="post" action="{{ url_for('compras.nueva') }}">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:0 18px; margin-bottom:8px;">
+      <div class="campo"><label>Proveedor *</label>
+        <select name="proveedor_id" required>
+          <option value="">Elegir proveedor</option>
+          {% for p in proveedores %}
+          <option value="{{ p.id }}" {{ 'selected' if p.id|string == datos.proveedor_id }}>{{ p.nombre }}</option>
+          {% endfor %}
+        </select>
+        {% if not proveedores %}<p class="subtitulo">Todavía no hay proveedores. Creá uno en el menú Proveedores.</p>{% endif %}
+      </div>
+      <div class="campo"><label>Fecha *</label><input type="date" name="fecha" value="{{ datos.fecha }}" required></div>
+      <div class="campo"><label>Nº de factura o remito</label><input type="text" name="numero_documento" value="{{ datos.numero_documento }}"></div>
+      <div class="campo"><label>Observaciones</label><input type="text" name="observaciones" value="{{ datos.observaciones }}"></div>
+    </div>
+
+    <h2 style="margin-top:14px;"><i class="bi bi-list-ul"></i> Productos</h2>
+    <div class="tabla-caja" style="margin-bottom:12px;">
+      <table class="tabla" id="tabla-lineas">
+        <thead>
+          <tr><th>Producto</th><th style="width:110px;">Cantidad</th><th style="width:150px;">Unidad</th><th style="width:130px;">Precio total</th><th style="width:130px;">Precio por unidad</th><th></th></tr>
+        </thead>
+        <tbody id="cuerpo-lineas"></tbody>
+      </table>
+    </div>
+    <button type="button" id="agregar-fila" class="btn btn-suave"><i class="bi bi-plus-lg"></i> Agregar producto</button>
+
+    <div style="display:flex; justify-content:flex-end; align-items:center; gap:12px; margin-top:18px;">
+      <span class="stat-etiqueta">Total de la compra</span>
+      <span class="stat-valor" id="total-compra">$0</span>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:18px;">
+      <button class="btn" type="submit"><i class="bi bi-check-lg"></i> Guardar compra</button>
+      <a class="btn btn-borde" href="{{ url_for('compras.lista') }}">Cancelar</a>
+    </div>
+  </form>
+</div>
+
+<template id="plantilla-fila">
+  <tr>
+    <td><select name="producto_id" class="sel-producto" required></select></td>
+    <td><input type="text" inputmode="decimal" name="cantidad" class="inp-cantidad" placeholder="25"></td>
+    <td><select name="unidad_id" class="sel-unidad"></select></td>
+    <td><input type="text" inputmode="decimal" name="precio_total" class="inp-precio" placeholder="30000"></td>
+    <td class="celda-unitario">—</td>
+    <td><button type="button" class="btn btn-borde quitar-fila" title="Quitar" style="padding:6px 12px;"><i class="bi bi-trash-fill"></i></button></td>
+  </tr>
+</template>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var PRODUCTOS = {{ productos|tojson }};
+  var UNIDADES = {{ unidades|tojson }};
+  var LINEAS = {{ lineas|tojson }};
+
+  function opcionesProducto(sel) {
+    var html = '<option value="">Elegir producto</option>';
+    PRODUCTOS.forEach(function (p) {
+      html += '<option value="' + p.id + '" data-unidad="' + p.unidad_compra_id + '"' +
+              (String(p.id) === String(sel) ? ' selected' : '') + '>' + p.nombre + '</option>';
+    });
+    return html;
+  }
+
+  function opcionesUnidad(sel) {
+    var html = '';
+    UNIDADES.forEach(function (u) {
+      html += '<option value="' + u.id + '"' +
+              (String(u.id) === String(sel) ? ' selected' : '') + '>' +
+              u.nombre + ' (' + u.abreviatura + ')</option>';
+    });
+    return html;
+  }
+
+  function aNumero(texto) {
+    texto = String(texto || '').replace(/\s|\$/g, '');
+    if (texto.indexOf(',') >= 0) { texto = texto.replace(/\./g, '').replace(',', '.'); }
+    var n = parseFloat(texto);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function formatear(n) {
+    return '$' + n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  function actualizar() {
+    var total = 0;
+    document.querySelectorAll('#cuerpo-lineas tr').forEach(function (fila) {
+      var cantidad = aNumero(fila.querySelector('.inp-cantidad').value);
+      var precio = aNumero(fila.querySelector('.inp-precio').value);
+      var unitario = cantidad > 0 ? precio / cantidad : 0;
+      fila.querySelector('.celda-unitario').textContent = unitario > 0 ? formatear(unitario) : '—';
+      total += precio;
+    });
+    document.getElementById('total-compra').textContent = formatear(total);
+  }
+
+  function agregarFila(productoId, cantidad, unidadId, precio) {
+    var clon = document.getElementById('plantilla-fila').content.cloneNode(true);
+    var fila = clon.querySelector('tr');
+    fila.querySelector('.sel-producto').innerHTML = opcionesProducto(productoId);
+    fila.querySelector('.sel-unidad').innerHTML = opcionesUnidad(unidadId);
+    fila.querySelector('.inp-cantidad').value = cantidad || '';
+    fila.querySelector('.inp-precio').value = precio || '';
+    document.getElementById('cuerpo-lineas').appendChild(fila);
+    actualizar();
+  }
+
+  document.getElementById('agregar-fila').addEventListener('click', function () { agregarFila(); });
+
+  document.getElementById('cuerpo-lineas').addEventListener('input', actualizar);
+
+  document.getElementById('cuerpo-lineas').addEventListener('change', function (evento) {
+    if (evento.target.classList.contains('sel-producto')) {
+      var opcion = evento.target.selectedOptions[0];
+      var fila = evento.target.closest('tr');
+      if (opcion && opcion.dataset.unidad) { fila.querySelector('.sel-unidad').value = opcion.dataset.unidad; }
+    }
+    actualizar();
+  });
+
+  document.getElementById('cuerpo-lineas').addEventListener('click', function (evento) {
+    var boton = evento.target.closest('.quitar-fila');
+    if (boton) {
+      boton.closest('tr').remove();
+      if (!document.querySelector('#cuerpo-lineas tr')) { agregarFila(); }
+      actualizar();
+    }
+  });
+
+  if (LINEAS.length) {
+    LINEAS.forEach(function (l) { agregarFila(l.producto_id, l.cantidad, l.unidad_id, l.precio_total); });
+  } else {
+    agregarFila();
+  }
+</script>
+{% endblock %}
+{# FIN compras_form.html #}

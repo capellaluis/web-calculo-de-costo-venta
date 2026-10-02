@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block titulo %}Compra {{ compra.id }}{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-cart-fill"></i> Compra del {{ compra.fecha }}</h1>
+    <p class="subtitulo">{{ compra.proveedor }}</p>
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn btn-borde" href="{{ url_for('compras.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
+    <form method="post" action="{{ url_for('compras.eliminar', compra_id=compra.id) }}" style="margin:0;" onsubmit="return confirm('¿Eliminar esta compra? Se recalcularán los precios.');">
+      <button class="btn btn-borde" type="submit"><i class="bi bi-trash-fill"></i> Eliminar</button>
+    </form>
+  </div>
+</div>
+
+{% if aviso %}
+<div class="tarjeta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ aviso }}</div>
+{% endif %}
+
+<div class="tarjeta" style="margin-bottom:18px;">
+  <h2><i class="bi bi-info-circle-fill"></i> Datos de la compra</h2>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px;">
+    <div><div class="stat-etiqueta">Proveedor</div><div>{{ compra.proveedor }}</div></div>
+    <div><div class="stat-etiqueta">Fecha</div><div>{{ compra.fecha }}</div></div>
+    <div><div class="stat-etiqueta">Nº de factura o remito</div><div>{{ compra.numero_documento or '—' }}</div></div>
+    <div><div class="stat-etiqueta">Observaciones</div><div>{{ compra.observaciones or '—' }}</div></div>
+    <div><div class="stat-etiqueta">Total</div><div><strong>{{ compra.total|moneda }}</strong></div></div>
+  </div>
+</div>
+
+<div class="tarjeta">
+  <h2><i class="bi bi-list-ul"></i> Productos comprados</h2>
+  {% if detalle %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead><tr><th>Producto</th><th>Cantidad</th><th>Unidad</th><th>Precio total</th><th>Precio por unidad</th></tr></thead>
+      <tbody>
+        {% for d in detalle %}
+        <tr>
+          <td>{{ d.producto }}</td>
+          <td>{{ d.cantidad }}</td>
+          <td>{{ d.unidad }}</td>
+          <td>{{ d.precio_total|moneda }}</td>
+          <td>{{ d.precio_unitario|moneda }} / {{ d.unidad }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-box-seam"></i>Esta compra no tiene productos</div>
+  {% endif %}
+</div>
+{% endblock %}
+{# FIN compras_ver.html #}

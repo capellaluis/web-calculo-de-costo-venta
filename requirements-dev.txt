@@ -1,0 +1,3 @@
+# Dependencias SOLO para desarrollo y pruebas (no van a requirements.txt)
+# Se instalan con:  pip install -r requirements-dev.txt
+pytest>=8,<9
