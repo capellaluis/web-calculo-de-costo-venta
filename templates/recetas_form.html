@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block titulo %}{{ 'Editar receta' if editando else 'Nueva receta' }}{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-egg-fried"></i> {{ 'Editar receta' if editando else 'Nueva receta' }}</h1>
+    <p class="subtitulo">El costo se calcula solo con el precio actual de cada producto. Los campos con * son obligatorios</p>
+  </div>
+  <a class="btn btn-borde" href="{{ url_for('recetas.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+
+{% if error %}
+<div class="tarjeta c-alerta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ error }}</div>
+{% endif %}
+
+<div class="tarjeta">
+  <form method="post" action="{{ url_for('recetas.editar', receta_id=receta_id) if editando else url_for('recetas.nueva') }}">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:0 18px;">
+      <div class="campo"><label>Nombre *</label><input type="text" name="nombre" value="{{ datos.nombre }}" required></div>
+      <div class="campo"><label>Rendimiento (cantidad) *</label><input type="text" inputmode="decimal" name="rendimiento_cantidad" value="{{ datos.rendimiento_cantidad }}" placeholder="10"></div>
+      <div class="campo"><label>Unidad del rendimiento</label><input type="text" name="rendimiento_unidad" value="{{ datos.rendimiento_unidad }}" placeholder="vasos, porciones, unidades"></div>
+      <div class="campo"><label>Descripción</label><input type="text" name="descripcion" value="{{ datos.descripcion }}"></div>
+      <div class="campo"><label>Notas</label><textarea name="notas" rows="2">{{ datos.notas }}</textarea></div>
+    </div>
+
+    <h2 style="margin-top:14px;"><i class="bi bi-list-ul"></i> Ingredientes</h2>
+    <div class="tabla-caja" style="margin-bottom:12px;">
+      <table class="tabla" id="tabla-ingredientes">
+        <thead>
+          <tr><th>Producto</th><th style="width:110px;">Cantidad</th><th style="width:150px;">Unidad</th><th style="width:130px;">Costo estimado</th><th></th></tr>
+        </thead>
+        <tbody id="cuerpo-ingredientes"></tbody>
+      </table>
+    </div>
+    <button type="button" id="agregar-fila" class="btn btn-suave"><i class="bi bi-plus-lg"></i> Agregar ingrediente</button>
+
+    <div style="display:flex; justify-content:flex-end; align-items:center; gap:22px; margin-top:18px; flex-wrap:wrap;">
+      <div><span class="stat-etiqueta">Costo total</span> <span class="stat-valor" id="costo-total">$0</span></div>
+      <div><span class="stat-etiqueta">Costo por unidad</span> <span class="stat-valor" id="costo-unidad">$0</span></div>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:18px;">
+      <button class="btn" type="submit"><i class="bi bi-check-lg"></i> Guardar receta</button>
+      <a class="btn btn-borde" href="{{ url_for('recetas.lista') }}">Cancelar</a>
+    </div>
+  </form>
+</div>
+
+<template id="plantilla-fila">
+  <tr>
+    <td><select name="producto_id" class="sel-producto" required></select></td>
+    <td><input type="text" inputmode="decimal" name="cantidad" class="inp-cantidad" placeholder="300"></td>
+    <td><select name="unidad_id" class="sel-unidad"></select></td>
+    <td class="celda-costo">—</td>
+    <td><button type="button" class="btn btn-borde quitar-fila" title="Quitar" style="padding:6px 12px;"><i class="bi bi-trash-fill"></i></button></td>
+  </tr>
+</template>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var PRODUCTOS = {{ productos|tojson }};
+  var UNIDADES = {{ unidades|tojson }};
+  var INGREDIENTES = {{ ingredientes|tojson }};
+
+  var UNIDADES_POR_ID = {};
+  UNIDADES.forEach(function (u) { UNIDADES_POR_ID[u.id] = u; });
+  var PRODUCTOS_POR_ID = {};
+  PRODUCTOS.forEach(function (p) { PRODUCTOS_POR_ID[p.id] = p; });
+
+  function formatear(n) {
+    return '$' + n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+  function aNumero(texto) {
+    texto = String(texto || '').replace(/\s|\$/g, '');
+    if (texto.indexOf(',') >= 0) { texto = texto.replace(/\./g, '').replace(',', '.'); }
+    var n = parseFloat(texto);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function opcionesProducto(sel) {
+    var html = '<option value="">Elegir producto</option>';
+    PRODUCTOS.forEach(function (p) {
+      html += '<option value="' + p.id + '"' +
+              (String(p.id) === String(sel) ? ' selected' : '') + '>' +
+              p.nombre + ' (' + formatear(p.precio_actual) + ' / ' + p.abrev_compra + ')</option>';
+    });
+    return html;
+  }
+  function opcionesUnidad(sel) {
+    var html = '';
+    UNIDADES.forEach(function (u) {
+      html += '<option value="' + u.id + '"' +
+              (String(u.id) === String(sel) ? ' selected' : '') + '>' +
+              u.nombre + ' (' + u.abreviatura + ')</option>';
+    });
+    return html;
+  }
+
+  function convertirJS(cantidad, desde, hacia) {
+    if (!desde || !hacia) { return null; }
+    if (desde.tipo !== hacia.tipo) { return null; }
+    if (desde.tipo === 'empaque' && desde.id !== hacia.id) { return null; }
+    return cantidad * desde.factor_base / hacia.factor_base;
+  }
+
+  function actualizar() {
+    var total = 0;
+    document.querySelectorAll('#cuerpo-ingredientes tr').forEach(function (fila) {
+      var productoId = fila.querySelector('.sel-producto').value;
+      var unidadId = fila.querySelector('.sel-unidad').value;
+      var cantidad = aNumero(fila.querySelector('.inp-cantidad').value);
+      var producto = PRODUCTOS_POR_ID[productoId];
+      var uIng = UNIDADES_POR_ID[unidadId];
+      var uCompra = producto ? UNIDADES_POR_ID[producto.unidad_compra_id] : null;
+      var costo = null;
+      if (producto && cantidad > 0) {
+        var enCompra = convertirJS(cantidad, uIng, uCompra);
+        if (enCompra !== null) { costo = enCompra * producto.precio_actual; }
+      }
+      fila.querySelector('.celda-costo').textContent = (costo === null) ? '—' : formatear(costo);
+      if (costo !== null) { total += costo; }
+    });
+    document.getElementById('costo-total').textContent = formatear(total);
+    var rendimiento = aNumero(document.querySelector('input[name="rendimiento_cantidad"]').value);
+    document.getElementById('costo-unidad').textContent = rendimiento > 0 ? formatear(total / rendimiento) : '—';
+  }
+
+  function agregarFila(productoId, cantidad, unidadId) {
+    var clon = document.getElementById('plantilla-fila').content.cloneNode(true);
+    var fila = clon.querySelector('tr');
+    fila.querySelector('.sel-producto').innerHTML = opcionesProducto(productoId);
+    fila.querySelector('.sel-unidad').innerHTML = opcionesUnidad(unidadId);
+    fila.querySelector('.inp-cantidad').value = cantidad || '';
+    document.getElementById('cuerpo-ingredientes').appendChild(fila);
+    actualizar();
+  }
+
+  document.getElementById('agregar-fila').addEventListener('click', function () { agregarFila(); });
+  document.getElementById('cuerpo-ingredientes').addEventListener('input', actualizar);
+  document.querySelector('input[name="rendimiento_cantidad"]').addEventListener('input', actualizar);
+
+  document.getElementById('cuerpo-ingredientes').addEventListener('change', function (evento) {
+    if (evento.target.classList.contains('sel-producto')) {
+      var fila = evento.target.closest('tr');
+      var producto = PRODUCTOS_POR_ID[evento.target.value];
+      if (producto) { fila.querySelector('.sel-unidad').value = producto.unidad_uso_id; }
+    }
+    actualizar();
+  });
+
+  document.getElementById('cuerpo-ingredientes').addEventListener('click', function (evento) {
+    var boton = evento.target.closest('.quitar-fila');
+    if (boton) {
+      boton.closest('tr').remove();
+      if (!document.querySelector('#cuerpo-ingredientes tr')) { agregarFila(); }
+      actualizar();
+    }
+  });
+
+  if (INGREDIENTES.length) {
+    INGREDIENTES.forEach(function (i) { agregarFila(i.producto_id, i.cantidad, i.unidad_id); });
+  } else {
+    agregarFila();
+  }
+</script>
+{% endblock %}
+{# FIN recetas_form.html #}

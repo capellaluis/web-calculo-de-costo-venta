@@ -14,6 +14,7 @@ from routes.proveedores import bp as proveedores_bp
 from routes.productos import bp as productos_bp
 from routes.compras import bp as compras_bp
 from routes.precios import bp as precios_bp
+from routes.recetas import bp as recetas_bp
 
 app = Flask(__name__)
 # La clave secreta viene del archivo .env. Si falta, se usa una temporal
@@ -25,6 +26,7 @@ app.register_blueprint(proveedores_bp)
 app.register_blueprint(productos_bp)
 app.register_blueprint(compras_bp)
 app.register_blueprint(precios_bp)
+app.register_blueprint(recetas_bp)
 
 
 def formato_moneda(valor):

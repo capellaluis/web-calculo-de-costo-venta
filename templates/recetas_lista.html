@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block titulo %}Recetas{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-egg-fried"></i> Recetas</h1>
+    <p class="subtitulo">{{ recetas|length }} en la lista · los costos se calculan con los precios actuales</p>
+  </div>
+  <a class="btn" href="{{ url_for('recetas.nueva') }}"><i class="bi bi-plus-lg"></i> Nueva receta</a>
+</div>
+
+{% if aviso %}
+<div class="tarjeta {{ 'c-alerta' if 'No se puede' in aviso }}" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">
+  {{ aviso }}
+</div>
+{% endif %}
+
+<div class="tarjeta">
+  {% if recetas %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead>
+        <tr><th>Receta</th><th>Ingredientes</th><th>Rendimiento</th><th>Costo total</th><th>Costo por unidad</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for r in recetas %}
+        <tr>
+          <td><a href="{{ url_for('recetas.ver', receta_id=r.id) }}"><strong>{{ r.nombre }}</strong></a></td>
+          <td>{{ r.n_ingredientes }}</td>
+          <td>{{ r.rendimiento_cantidad }} {{ r.rendimiento_unidad }}</td>
+          <td>{{ r.total|moneda }}</td>
+          <td><strong>{{ r.costo_unidad|moneda }}</strong> / {{ r.rendimiento_unidad }}</td>
+          <td>
+            <div style="display:flex; gap:6px; justify-content:flex-end;">
+              <a class="btn btn-suave" style="padding:6px 12px;" title="Ver" href="{{ url_for('recetas.ver', receta_id=r.id) }}"><i class="bi bi-eye-fill"></i></a>
+              <a class="btn btn-suave" style="padding:6px 12px;" title="Editar" href="{{ url_for('recetas.editar', receta_id=r.id) }}"><i class="bi bi-pencil-fill"></i></a>
+              <form method="post" action="{{ url_for('recetas.eliminar', receta_id=r.id) }}" style="margin:0;" onsubmit="return confirm('¿Eliminar esta receta?');">
+                <button class="btn btn-borde" style="padding:6px 12px;" title="Eliminar" type="submit"><i class="bi bi-trash-fill"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-egg-fried"></i>Aún no hay recetas. Creá la primera con el botón "Nueva receta"</div>
+  {% endif %}
+</div>
+{% endblock %}
+{# FIN recetas_lista.html #}

@@ -37,7 +37,7 @@
   </a>
 
   <div class="menu-titulo">Producción</div>
-  <a class="nav-item c-recetas{{ ' activo' if seccion == 'recetas' }}" href="#">
+  <a class="nav-item c-recetas{{ ' activo' if seccion == 'recetas' }}" href="{{ url_for('recetas.lista') }}">
     <i class="bi bi-egg-fried"></i><span>Recetas</span>
   </a>
   <a class="nav-item c-costos{{ ' activo' if seccion == 'costos' }}" href="#">

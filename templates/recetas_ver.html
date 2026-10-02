@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block titulo %}{{ calculo.receta.nombre }}{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-egg-fried"></i> {{ calculo.receta.nombre }}</h1>
+    <p class="subtitulo">Rendimiento: {{ calculo.receta.rendimiento_cantidad }} {{ calculo.receta.rendimiento_unidad }}</p>
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn" href="{{ url_for('recetas.editar', receta_id=calculo.receta.id) }}"><i class="bi bi-pencil-fill"></i> Editar</a>
+    <a class="btn btn-borde" href="{{ url_for('recetas.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
+    <form method="post" action="{{ url_for('recetas.eliminar', receta_id=calculo.receta.id) }}" style="margin:0;" onsubmit="return confirm('¿Eliminar esta receta?');">
+      <button class="btn btn-borde" type="submit"><i class="bi bi-trash-fill"></i> Eliminar</button>
+    </form>
+  </div>
+</div>
+
+{% if aviso %}
+<div class="tarjeta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ aviso }}</div>
+{% endif %}
+
+{% if calculo.lineas|selectattr('incompatible')|list|length %}
+<div class="tarjeta c-alerta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  Hay ingredientes con unidades incompatibles: revisá la receta.
+</div>
+{% endif %}
+
+<div class="grid-stats" style="margin-bottom:18px;">
+  <div class="stat-card c-recetas">
+    <div class="stat-icono"><i class="bi bi-cash-stack"></i></div>
+    <div>
+      <div class="stat-valor">{{ calculo.total|moneda }}</div>
+      <div class="stat-etiqueta">Costo total de la receta</div>
+    </div>
+  </div>
+  <div class="stat-card c-costos">
+    <div class="stat-icono"><i class="bi bi-tag-fill"></i></div>
+    <div>
+      <div class="stat-valor">{{ calculo.costo_unidad|moneda }}</div>
+      <div class="stat-etiqueta">Costo por {{ calculo.receta.rendimiento_unidad }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="tarjeta">
+  <h2><i class="bi bi-list-ul"></i> Ingredientes</h2>
+  {% if calculo.lineas %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead><tr><th>Producto</th><th>Cantidad</th><th>Costo</th></tr></thead>
+      <tbody>
+        {% for l in calculo.lineas %}
+        <tr>
+          <td>{{ l.producto }}</td>
+          <td>{{ l.cantidad }} {{ l.unidad }}</td>
+          <td>
+            {% if l.incompatible %}
+            <span class="c-alerta" style="color:var(--c); font-weight:600;"><i class="bi bi-exclamation-triangle-fill"></i> Unidad incompatible</span>
+            {% else %}
+            {{ l.costo|moneda }}
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-box-seam"></i>Esta receta no tiene ingredientes</div>
+  {% endif %}
+</div>
+
+{% if calculo.receta.descripcion or calculo.receta.notas %}
+<div class="tarjeta c-recetas" style="margin-top:18px;">
+  <h2><i class="bi bi-info-circle-fill"></i> Detalles</h2>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px;">
+    <div><div class="stat-etiqueta">Descripción</div><div>{{ calculo.receta.descripcion or '—' }}</div></div>
+    <div><div class="stat-etiqueta">Notas</div><div>{{ calculo.receta.notas or '—' }}</div></div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+{# FIN recetas_ver.html #}
