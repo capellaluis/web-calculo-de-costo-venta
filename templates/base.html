@@ -40,7 +40,7 @@
   <a class="nav-item c-recetas{{ ' activo' if seccion == 'recetas' }}" href="{{ url_for('recetas.lista') }}">
     <i class="bi bi-egg-fried"></i><span>Recetas</span>
   </a>
-  <a class="nav-item c-costos{{ ' activo' if seccion == 'costos' }}" href="#">
+  <a class="nav-item c-costos{{ ' activo' if seccion == 'costos' }}" href="{{ url_for('costos.lista') }}">
     <i class="bi bi-calculator-fill"></i><span>Costos</span>
   </a>
 

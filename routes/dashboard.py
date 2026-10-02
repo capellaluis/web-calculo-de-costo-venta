@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template
 
 from database.db import obtener_conexion
+from services.costos import costo_total_recetas
 from services.precios import productos_con_aumento
 
 bp = Blueprint("dashboard", __name__)
@@ -31,7 +32,7 @@ def inicio():
             "productos": uno("SELECT COUNT(*) FROM productos"),
             "recetas": uno("SELECT COUNT(*) FROM recetas"),
             "fabricados": uno("SELECT COUNT(*) FROM productos_fabricados"),
-            "costo_total": uno("SELECT COALESCE(SUM(total), 0) FROM compras"),
+            "costo_total": float(costo_total_recetas(con)),
         }
 # (aqui termina la parte 1)
 

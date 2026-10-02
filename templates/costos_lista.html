@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block titulo %}Costos{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-calculator-fill"></i> Costos</h1>
+    <p class="subtitulo">Se calculan con el precio actual de cada producto</p>
+  </div>
+</div>
+
+<div class="grid-stats">
+  <div class="stat-card c-costos">
+    <div class="stat-icono"><i class="bi bi-egg-fried"></i></div>
+    <div>
+      <div class="stat-valor">{{ recetas|length }}</div>
+      <div class="stat-etiqueta">Recetas</div>
+    </div>
+  </div>
+  <div class="stat-card c-costos">
+    <div class="stat-icono"><i class="bi bi-calculator-fill"></i></div>
+    <div>
+      <div class="stat-valor">{{ promedio|moneda }}</div>
+      <div class="stat-etiqueta">Costo promedio por receta</div>
+    </div>
+  </div>
+  <div class="stat-card c-costos">
+    <div class="stat-icono"><i class="bi bi-cash-stack"></i></div>
+    <div>
+      <div class="stat-valor">{{ total|moneda }}</div>
+      <div class="stat-etiqueta">Costo total de las recetas</div>
+    </div>
+  </div>
+  <div class="stat-card c-costos">
+    <div class="stat-icono"><i class="bi bi-trophy-fill"></i></div>
+    <div>
+      <div class="stat-valor" style="font-size:1.15rem;">{{ ingredientes[0].nombre if ingredientes else '—' }}</div>
+      <div class="stat-etiqueta">Ingrediente que más pesa</div>
+    </div>
+  </div>
+</div>
+
+<h2 style="margin:8px 0 14px;"><i class="bi bi-grid-3x3-gap-fill"></i> Costo por receta</h2>
+{% if recetas %}
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px; margin-bottom:26px;">
+  {% for r in recetas %}
+  <a class="tarjeta c-costos" href="{{ url_for('recetas.ver', receta_id=r.id) }}" style="display:block;">
+    <h2 style="margin-bottom:4px;">{{ r.nombre }}</h2>
+    <div class="stat-etiqueta" style="margin-bottom:10px;">Rendimiento: {{ r.rendimiento_cantidad }} {{ r.rendimiento_unidad }}</div>
+    <div class="stat-valor">{{ r.costo_unidad|moneda }}</div>
+    <div class="stat-etiqueta">por {{ r.rendimiento_unidad }}</div>
+    <div class="subtitulo" style="margin-top:10px;">Costo total: {{ r.total|moneda }}</div>
+    {% if r.hay_incompatible %}
+    <div class="c-alerta" style="color:var(--c); font-weight:600; margin-top:8px;"><i class="bi bi-exclamation-triangle-fill"></i> Revisar unidades</div>
+    {% endif %}
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="tarjeta">
+  <div class="estado-vacio"><i class="bi bi-calculator"></i>Aún no hay recetas. Creá una en el menú Recetas para ver sus costos</div>
+</div>
+{% endif %}
+
+<div class="tarjeta">
+  <h2><i class="bi bi-bar-chart-fill"></i> Ingredientes que más pesan</h2>
+  {% if ingredientes %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead><tr><th>Ingrediente</th><th>Precio actual</th><th>Recetas</th><th>Costo acumulado</th><th>Peso</th></tr></thead>
+      <tbody>
+        {% for i in ingredientes %}
+        <tr>
+          <td><strong>{{ i.nombre }}</strong></td>
+          <td>{{ i.precio_actual|moneda }} / {{ i.unidad }}</td>
+          <td>{{ i.n_recetas }}</td>
+          <td>{{ i.costo|moneda }}</td>
+          <td>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="background:var(--c-suave); border-radius:999px; height:10px; width:120px;">
+                <div style="width:{{ '%.1f'|format(i.porcentaje or 0) }}%; background:var(--c); height:10px; border-radius:999px;"></div>
+              </div>
+              <span class="subtitulo">{% if i.porcentaje is not none %}{{ '%.1f'|format(i.porcentaje) }} %{% else %}—{% endif %}</span>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-bar-chart"></i>Aún no hay ingredientes para analizar</div>
+  {% endif %}
+</div>
+{% endblock %}
+{# FIN costos_lista.html #}
