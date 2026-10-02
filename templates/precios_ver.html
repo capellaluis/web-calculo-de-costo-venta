@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block titulo %}Historial de {{ producto.nombre }}{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-graph-up-arrow"></i> {{ producto.nombre }}</h1>
+    <p class="subtitulo">Historial de precios · {{ producto.categoria }}</p>
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn" href="{{ url_for('productos.ver', producto_id=producto.id) }}"><i class="bi bi-box-seam-fill"></i> Ver producto</a>
+    <a class="btn btn-borde" href="{{ url_for('precios.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
+  </div>
+</div>
+
+{% if resumen and resumen.aumento %}
+<div class="tarjeta c-alerta" style="margin-bottom:18px; padding:14px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  Aumentó: antes {{ resumen.anterior|moneda }} ({{ resumen.fecha_anterior }}),
+  ahora {{ resumen.actual|moneda }} ({{ resumen.fecha_actual }}).
+  Subió {{ resumen.diferencia|moneda }}{% if resumen.porcentaje is not none %} (+{{ '%.1f'|format(resumen.porcentaje) }} %){% endif %}.
+</div>
+{% endif %}
+
+{% if historial %}
+<div class="tarjeta" style="margin-bottom:18px;">
+  <h2><i class="bi bi-graph-up"></i> Evolución del precio</h2>
+  <div class="grafico-caja"><canvas id="grafPrecios"></canvas></div>
+</div>
+
+<div class="tarjeta">
+  <h2><i class="bi bi-list-ul"></i> Todos los precios</h2>
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead><tr><th>Fecha</th><th>Precio</th></tr></thead>
+      <tbody>
+        {% for h in historial %}
+        <tr><td>{{ h.fecha }}</td><td>{{ h.precio_unitario|moneda }} / {{ h.unidad }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="tarjeta">
+  <div class="estado-vacio"><i class="bi bi-graph-up"></i>Aún no hay precios registrados para este producto</div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if historial %}
+<script src="{{ url_for('static', filename='js/chart.umd.js') }}"></script>
+<script>
+  var datos = {{ grafico|tojson }};
+  var raiz = document.querySelector('main.contenido');
+  var color = getComputedStyle(raiz).getPropertyValue('--c').trim() || '#0891b2';
+  Chart.defaults.animation = false;
+  Chart.defaults.color = getComputedStyle(document.body).getPropertyValue('--texto-suave').trim();
+  Chart.defaults.borderColor = getComputedStyle(document.body).getPropertyValue('--borde').trim();
+  Chart.defaults.font.family = "system-ui, -apple-system, 'Segoe UI', sans-serif";
+
+  function dinero(v) { return '$' + Number(v).toLocaleString('es-AR'); }
+
+  new Chart(document.getElementById('grafPrecios'), {
+    type: 'line',
+    data: {
+      labels: datos.etiquetas,
+      datasets: [{
+        data: datos.valores,
+        borderColor: color,
+        backgroundColor: color,
+        pointBackgroundColor: color,
+        pointRadius: 4,
+        borderWidth: 2,
+        tension: 0.2,
+        fill: false
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: false, ticks: { callback: dinero } } }
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}
+{# FIN precios_ver.html #}

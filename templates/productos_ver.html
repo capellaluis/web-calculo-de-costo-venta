@@ -8,6 +8,7 @@
     <p class="subtitulo">Ficha del producto</p>
   </div>
   <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn btn-suave" href="{{ url_for('precios.ver', producto_id=producto.id) }}"><i class="bi bi-graph-up-arrow"></i> Historial de precios</a>
     <a class="btn" href="{{ url_for('productos.editar', producto_id=producto.id) }}"><i class="bi bi-pencil-fill"></i> Editar</a>
     <a class="btn btn-borde" href="{{ url_for('productos.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
   </div>

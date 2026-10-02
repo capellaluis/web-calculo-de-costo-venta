@@ -85,6 +85,31 @@
     {% endif %}
   </div>
 </div>
+<div class="tarjeta c-precios" style="margin-top:18px;">
+  <h2><i class="bi bi-exclamation-triangle-fill"></i> Productos cuyo costo aumentó</h2>
+  {% if aumentos %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead><tr><th>Producto</th><th>Antes</th><th>Ahora</th><th>Aumento</th></tr></thead>
+      <tbody>
+        {% for a in aumentos %}
+        <tr>
+          <td><i class="bi bi-exclamation-triangle-fill"></i>
+            <a href="{{ url_for('precios.ver', producto_id=a.producto_id) }}"><strong>{{ a.nombre }}</strong></a></td>
+          <td>{{ a.anterior|moneda }} / {{ a.unidad }}</td>
+          <td>{{ a.actual|moneda }} / {{ a.unidad }}</td>
+          <td class="c-alerta" style="color:var(--c); font-weight:700;">
+            +{{ a.diferencia|moneda }}{% if a.porcentaje is not none %} ({{ '%.1f'|format(a.porcentaje) }} %){% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-graph-up"></i>Aún no hay aumentos de precios registrados</div>
+  {% endif %}
+</div>
 {# fin parte 2 #}
 
 {% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block titulo %}Historial de precios{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-graph-up-arrow"></i> Historial de precios</h1>
+    <p class="subtitulo">Evolución del precio por unidad de compra de cada producto</p>
+  </div>
+</div>
+
+<div class="tarjeta" style="margin-bottom:18px;">
+  <form method="get" style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+    <div>
+      <label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Categoría</label>
+      <select name="categoria" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+        <option value="">Todas las categorías</option>
+        {% for c in categorias %}
+        <option value="{{ c }}" {{ 'selected' if c == categoria }}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; padding-bottom:10px;">
+      <input type="checkbox" id="solo_aumentos" name="solo_aumentos" value="1" {{ 'checked' if solo_aumentos }}>
+      <label for="solo_aumentos">Ver solo los que aumentaron</label>
+    </div>
+    <button class="btn" type="submit"><i class="bi bi-search"></i> Buscar</button>
+    {% if categoria or solo_aumentos %}<a class="btn btn-borde" href="{{ url_for('precios.lista') }}">Limpiar</a>{% endif %}
+  </form>
+</div>
+
+<div class="tarjeta">
+  {% if items %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead>
+        <tr><th>Producto</th><th>Categoría</th><th>Precio anterior</th><th>Precio actual</th><th>Diferencia</th><th>Variación</th></tr>
+      </thead>
+      <tbody>
+        {% for it in items %}
+        <tr>
+          <td><a href="{{ url_for('precios.ver', producto_id=it.producto_id) }}"><strong>{{ it.nombre }}</strong></a></td>
+          <td>{% if it.categoria %}<span class="badge">{{ it.categoria }}</span>{% endif %}</td>
+          <td>{% if it.anterior is not none %}{{ it.anterior|moneda }} / {{ it.unidad }}<br><span class="subtitulo">{{ it.fecha_anterior }}</span>{% else %}—{% endif %}</td>
+          <td><strong>{{ it.actual|moneda }}</strong> / {{ it.unidad }}<br><span class="subtitulo">{{ it.fecha_actual }}</span></td>
+          <td>
+            {% if it.aumento %}
+            <span class="c-alerta" style="color:var(--c); font-weight:700;">+{{ it.diferencia|moneda }}</span>
+            {% elif it.diferencia < 0 %}
+            <span class="subtitulo">{{ it.diferencia|moneda }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if it.porcentaje is not none %}
+            <span class="{{ 'c-alerta' if it.aumento }}" style="color:{{ 'var(--c)' if it.aumento else 'var(--texto-suave)' }}; font-weight:600;">
+              {% if it.aumento %}<i class="bi bi-exclamation-triangle-fill"></i> {% endif %}{{ '%.1f'|format(it.porcentaje) }} %
+            </span>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-graph-up"></i>
+    {% if categoria or solo_aumentos %}No hay productos que coincidan con esos filtros{% else %}Aún no hay precios registrados. Cargá una compra o el precio de un producto{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{# FIN precios_lista.html #}

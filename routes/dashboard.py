@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template
 
 from database.db import obtener_conexion
+from services.precios import productos_con_aumento
 
 bp = Blueprint("dashboard", __name__)
 
@@ -54,6 +55,8 @@ def inicio():
             "LEFT JOIN categorias c ON c.id = p.categoria_id "
             "GROUP BY categoria ORDER BY total DESC"
         ).fetchall()
+
+        aumentos = productos_con_aumento(con, limite=5)
 # (aqui termina la parte 2a)
     finally:
         con.close()
@@ -74,7 +77,7 @@ def inicio():
     }
 
     return render_template("dashboard.html", seccion="dashboard",
-                           stats=stats, graficos=graficos)
+                           stats=stats, graficos=graficos, aumentos=aumentos)
 
 
 # FIN dashboard.py
