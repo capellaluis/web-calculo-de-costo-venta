@@ -5,9 +5,17 @@
 <div class="encabezado">
   <div>
     <h1><i class="bi bi-calculator-fill"></i> Costos</h1>
-    <p class="subtitulo">Se calculan con el precio actual de cada producto</p>
+    <p class="subtitulo">Escribí tus porcentajes y mirá el precio de venta de cada receta</p>
   </div>
 </div>
+
+{% if aviso %}
+<div class="tarjeta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ aviso }}</div>
+{% endif %}
+
+{% set destino = 'costos' %}
+{% set form_action = url_for('configuracion.inicio') %}
+{% include "_form_margenes.html" %}
 
 <div class="grid-stats">
   <div class="stat-card c-costos">
@@ -40,16 +48,28 @@
   </div>
 </div>
 
-<h2 style="margin:8px 0 14px;"><i class="bi bi-grid-3x3-gap-fill"></i> Costo por receta</h2>
+<h2 style="margin:8px 0 4px;"><i class="bi bi-grid-3x3-gap-fill"></i> Costo y precios por receta</h2>
+<p class="subtitulo" style="margin-bottom:14px;">El precio de venta suma los gastos fijos y divide por el margen de ganancia (se configura en Configuración).</p>
 {% if recetas %}
-<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px; margin-bottom:26px;">
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:18px; margin-bottom:26px;">
   {% for r in recetas %}
   <a class="tarjeta c-costos" href="{{ url_for('recetas.ver', receta_id=r.id) }}" style="display:block;">
     <h2 style="margin-bottom:4px;">{{ r.nombre }}</h2>
     <div class="stat-etiqueta" style="margin-bottom:10px;">Rendimiento: {{ r.rendimiento_cantidad }} {{ r.rendimiento_unidad }}</div>
-    <div class="stat-valor">{{ r.costo_unidad|moneda }}</div>
-    <div class="stat-etiqueta">por {{ r.rendimiento_unidad }}</div>
-    <div class="subtitulo" style="margin-top:10px;">Costo total: {{ r.total|moneda }}</div>
+    <div class="stat-etiqueta">Costo base por {{ r.rendimiento_unidad }}</div>
+    <div style="font-size:1.05rem;">{{ r.costo_unidad|moneda }}</div>
+    <div class="stat-etiqueta" style="margin-top:6px;">Costo con gastos</div>
+    <div class="stat-valor">{{ r.precio.costo_con_gastos|moneda }}</div>
+    {% if r.precio.precios %}
+    <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+      {% for p in r.precio.precios %}
+      <span style="display:inline-flex; align-items:center; gap:5px; font-size:.85rem;">
+        <i class="bi bi-circle-fill" style="color:{{ colores[loop.index0] }}; font-size:.6rem;"></i>
+        {{ p.nombre }}: <strong>{{ p.precio|moneda }}</strong>
+      </span>
+      {% endfor %}
+    </div>
+    {% endif %}
     {% if r.hay_incompatible %}
     <div class="c-alerta" style="color:var(--c); font-weight:600; margin-top:8px;"><i class="bi bi-exclamation-triangle-fill"></i> Revisar unidades</div>
     {% endif %}

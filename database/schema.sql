@@ -127,6 +127,17 @@ CREATE TABLE IF NOT EXISTS presentaciones (
     cantidad_unidades       REAL NOT NULL
 );
 
+-- ---------- GASTOS FIJOS ----------
+-- Porcentajes que se SUMAN al costo (gas, agua, luz, alquiler, etc.).
+-- El usuario puede agregar o quitar renglones desde Configuración.
+CREATE TABLE IF NOT EXISTS gastos (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre      TEXT NOT NULL,
+    porcentaje  REAL NOT NULL DEFAULT 0,
+    orden       INTEGER NOT NULL DEFAULT 0,
+    creado_en   TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+);
+
 -- ---------- CONFIGURACION ----------
 CREATE TABLE IF NOT EXISTS configuracion (
     clave   TEXT PRIMARY KEY,
@@ -167,7 +178,16 @@ INSERT OR IGNORE INTO margenes (numero, nombre, porcentaje) VALUES
     (2, 'Margen 2', 50),
     (3, 'Margen 3', 70);
 
+-- Gastos fijos iniciales (solo si la tabla está vacía)
+INSERT INTO gastos (nombre, porcentaje, orden)
+SELECT nombre, 0, orden FROM (
+    SELECT 'Gas' AS nombre, 0 AS orden
+    UNION ALL SELECT 'Agua', 1
+    UNION ALL SELECT 'Luz', 2
+) WHERE NOT EXISTS (SELECT 1 FROM gastos);
+
 INSERT OR IGNORE INTO configuracion (clave, valor) VALUES
     ('nombre_negocio', 'Mi Negocio'),
     ('moneda', '$'),
-    ('metodo_precio', 'sobre_costo');
+    ('metodo_precio', 'sobre_costo'),
+    ('redondeo', 'entero');

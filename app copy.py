@@ -16,6 +16,7 @@ from routes.compras import bp as compras_bp
 from routes.precios import bp as precios_bp
 from routes.recetas import bp as recetas_bp
 from routes.costos import bp as costos_bp
+from routes.configuracion import bp as configuracion_bp
 
 app = Flask(__name__)
 # La clave secreta viene del archivo .env. Si falta, se usa una temporal
@@ -29,6 +30,7 @@ app.register_blueprint(compras_bp)
 app.register_blueprint(precios_bp)
 app.register_blueprint(recetas_bp)
 app.register_blueprint(costos_bp)
+app.register_blueprint(configuracion_bp)
 
 
 def formato_moneda(valor):
@@ -45,6 +47,9 @@ app.add_template_filter(formato_moneda, "moneda")
 
 
 if __name__ == "__main__":
+    # Aplica migraciones pendientes (hace copia de seguridad antes de tocar la base)
+    from database.migrar import migrar
+    migrar()
     # Todo se configura en el archivo .env (ver .env.example)
     host = os.environ.get("APP_HOST", "127.0.0.1")
     puerto = int(os.environ.get("APP_PORT", "5000"))

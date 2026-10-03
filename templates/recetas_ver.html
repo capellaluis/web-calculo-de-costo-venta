@@ -44,6 +44,38 @@
   </div>
 </div>
 
+{% if margenes %}
+<div class="tarjeta" style="margin-bottom:18px;">
+  <h2><i class="bi bi-diagram-3-fill"></i> Del costo al precio de venta</h2>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:14px;">
+    <div><div class="stat-etiqueta">Costo base</div><div>{{ precio.costo|moneda }}</div></div>
+    <div><div class="stat-etiqueta">+ Gastos fijos</div><div>{{ precio.total_gastos|moneda }}</div></div>
+    <div><div class="stat-etiqueta">Costo con gastos</div><div><strong>{{ precio.costo_con_gastos|moneda }}</strong></div></div>
+  </div>
+  {% if precio.gastos %}
+  <div class="tabla-caja" style="margin-bottom:14px;">
+    <table class="tabla">
+      <thead><tr><th>Gasto</th><th>Porcentaje</th><th>Monto</th></tr></thead>
+      <tbody>
+        {% for g in precio.gastos %}
+        <tr><td>{{ g.nombre }}</td><td>{{ '%g'|format(g.porcentaje) }} %</td><td>{{ g.monto|moneda }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px;">
+    {% for p in precio.precios %}
+    <div style="border:1px solid var(--borde); border-radius:14px; padding:14px;">
+      <div class="stat-etiqueta"><i class="bi bi-circle-fill" style="color:{{ colores[loop.index0] }}; font-size:.6rem;"></i> {{ p.nombre }} ({{ '%g'|format(p.porcentaje) }} %)</div>
+      <div class="stat-valor" style="color:{{ colores[loop.index0] }};">{{ p.precio|moneda }}</div>
+      <div class="stat-etiqueta">por {{ calculo.receta.rendimiento_unidad }} · ganancia {{ p.ganancia|moneda }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
 <div class="tarjeta">
   <h2><i class="bi bi-list-ul"></i> Ingredientes</h2>
   {% if calculo.lineas %}

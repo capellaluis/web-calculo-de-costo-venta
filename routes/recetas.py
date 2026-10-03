@@ -3,10 +3,14 @@ from decimal import InvalidOperation
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 
 from database.db import obtener_conexion
+from services.gastos import leer_gastos
+from services.margenes import calcular_precios_venta, leer_margenes, leer_redondeo
 from services.numeros import leer_decimal
 from services.recetas import ErrorReceta, calcular_receta, validar_ingredientes
 
 bp = Blueprint("recetas", __name__, url_prefix="/recetas")
+
+COLORES_MARGEN = ["#16a34a", "#2563eb", "#7c3aed"]
 
 AVISOS = {
     "creado": "Receta creada correctamente.",
@@ -166,11 +170,17 @@ def ver(receta_id):
     con = obtener_conexion()
     try:
         calculo = calcular_receta(con, receta_id)
+        gastos = leer_gastos(con)
+        margenes = leer_margenes(con)
+        redondeo = leer_redondeo(con)
+        precio = calcular_precios_venta(
+            calculo["costo_unidad"], gastos, margenes, redondeo)
     except ErrorReceta:
         abort(404)
     finally:
         con.close()
     return render_template("recetas_ver.html", seccion="recetas", calculo=calculo,
+                           margenes=margenes, precio=precio, colores=COLORES_MARGEN,
                            aviso=AVISOS.get(request.args.get("aviso", "")))
 
 
