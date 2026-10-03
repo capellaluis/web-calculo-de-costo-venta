@@ -43,6 +43,9 @@
   <a class="nav-item c-costos{{ ' activo' if seccion == 'costos' }}" href="{{ url_for('costos.lista') }}">
     <i class="bi bi-calculator-fill"></i><span>Costos</span>
   </a>
+  <a class="nav-item c-fabricados{{ ' activo' if seccion == 'fabricados' }}" href="{{ url_for('fabricados.lista') }}">
+    <i class="bi bi-boxes"></i><span>Productos fabricados</span>
+  </a>
 
   <div class="menu-titulo">Sistema</div>
   <a class="nav-item c-reportes{{ ' activo' if seccion == 'reportes' }}" href="#">

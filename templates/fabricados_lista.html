@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block titulo %}Productos fabricados{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-boxes"></i> Productos fabricados</h1>
+    <p class="subtitulo">{{ fabricados|length }} en la lista · costos con los precios actuales</p>
+  </div>
+  <a class="btn" href="{{ url_for('fabricados.nuevo') }}"><i class="bi bi-plus-lg"></i> Nuevo producto fabricado</a>
+</div>
+
+{% if aviso %}
+<div class="tarjeta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ aviso }}</div>
+{% endif %}
+
+<div class="tarjeta">
+  {% if fabricados %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead>
+        <tr><th>Producto</th><th>Receta</th><th>Lote</th><th>Costo por unidad</th><th>Presentaciones</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for f in fabricados %}
+        <tr>
+          <td><a href="{{ url_for('fabricados.ver', fabricado_id=f.id) }}"><strong>{{ f.nombre }}</strong></a></td>
+          <td>{{ f.receta }}</td>
+          <td>{{ f.cantidad_fabricada }} u.<br><span class="subtitulo">{{ f.costo_lote|moneda }}</span></td>
+          <td><strong>{{ f.costo_unidad|moneda }}</strong></td>
+          <td>
+            {% for p in f.presentaciones %}
+            <span class="badge">{{ p.nombre }}: {{ p.costo|moneda }}</span>
+            {% else %}
+            <span class="subtitulo">Sin presentaciones</span>
+            {% endfor %}
+          </td>
+          <td>
+            <div style="display:flex; gap:6px; justify-content:flex-end;">
+              <a class="btn btn-suave" style="padding:6px 12px;" title="Ver" href="{{ url_for('fabricados.ver', fabricado_id=f.id) }}"><i class="bi bi-eye-fill"></i></a>
+              <a class="btn btn-suave" style="padding:6px 12px;" title="Editar" href="{{ url_for('fabricados.editar', fabricado_id=f.id) }}"><i class="bi bi-pencil-fill"></i></a>
+              <form method="post" action="{{ url_for('fabricados.eliminar', fabricado_id=f.id) }}" style="margin:0;" onsubmit="return confirm('¿Eliminar este producto fabricado?');">
+                <button class="btn btn-borde" style="padding:6px 12px;" title="Eliminar" type="submit"><i class="bi bi-trash-fill"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-boxes"></i>Aún no hay productos fabricados. Creá el primero con el botón "Nuevo producto fabricado"</div>
+  {% endif %}
+</div>
+{% endblock %}
+{# FIN fabricados_lista.html #}

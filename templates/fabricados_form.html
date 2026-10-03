@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block titulo %}{{ 'Editar producto fabricado' if editando else 'Nuevo producto fabricado' }}{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-boxes"></i> {{ 'Editar producto fabricado' if editando else 'Nuevo producto fabricado' }}</h1>
+    <p class="subtitulo">Elegí una receta, el tamaño del lote y las presentaciones</p>
+  </div>
+  <a class="btn btn-borde" href="{{ url_for('fabricados.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+
+{% if error %}
+<div class="tarjeta c-alerta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ error }}</div>
+{% endif %}
+
+<div class="tarjeta">
+  <form method="post" action="{{ url_for('fabricados.editar', fabricado_id=fabricado_id) if editando else url_for('fabricados.nuevo') }}">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:0 18px;">
+      <div class="campo"><label>Nombre *</label><input type="text" name="nombre" value="{{ datos.nombre }}" placeholder="Tequeños" required></div>
+      <div class="campo"><label>Receta *</label>
+        <select name="receta_id" id="sel-receta" required>
+          <option value="">Elegir receta</option>
+          {% for r in recetas %}
+          <option value="{{ r.id }}" {{ 'selected' if r.id|string == datos.receta_id }}>{{ r.nombre }} (costo {{ r.costo_total|moneda }})</option>
+          {% endfor %}
+        </select>
+        {% if not recetas %}<p class="subtitulo">Todavía no hay recetas. Creá una en el menú Recetas.</p>{% endif %}
+      </div>
+      <div class="campo"><label>Cantidad fabricada (unidades del lote) *</label><input type="text" inputmode="decimal" id="cantidad-fabricada" name="cantidad_fabricada" value="{{ datos.cantidad_fabricada }}" placeholder="20"></div>
+      <div class="campo"><label>Notas</label><textarea name="notas" rows="2">{{ datos.notas }}</textarea></div>
+    </div>
+
+    <h2 style="margin-top:14px;"><i class="bi bi-grid-3x3-gap-fill"></i> Presentaciones</h2>
+    <p class="subtitulo" style="margin-bottom:10px;">Ejemplos: x6, x12, x20. Se calculan solas con el costo del lote.</p>
+    <div class="tabla-caja" style="margin-bottom:12px;">
+      <table class="tabla">
+        <thead>
+          <tr><th>Nombre</th><th style="width:130px;">Cantidad de unidades</th><th style="width:130px;">Costo</th><th>Precios de venta</th><th></th></tr>
+        </thead>
+        <tbody id="cuerpo-presentaciones"></tbody>
+      </table>
+    </div>
+    <button type="button" id="agregar-presentacion" class="btn btn-suave"><i class="bi bi-plus-lg"></i> Agregar presentación</button>
+
+    <div style="display:flex; justify-content:flex-end; gap:26px; margin:18px 0; flex-wrap:wrap;">
+      <div><span class="stat-etiqueta">Costo del lote</span> <span class="stat-valor" id="costo-lote" style="font-size:1.2rem;">$0</span></div>
+      <div><span class="stat-etiqueta">Costo por unidad</span> <span class="stat-valor" id="costo-unidad" style="font-size:1.2rem;">$0</span></div>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn" type="submit"><i class="bi bi-check-lg"></i> Guardar</button>
+      <a class="btn btn-borde" href="{{ url_for('fabricados.lista') }}">Cancelar</a>
+    </div>
+  </form>
+</div>
+
+<template id="plantilla-presentacion">
+  <tr>
+    <td><input type="text" name="pres_nombre" class="pres-nombre" placeholder="x6"></td>
+    <td><input type="text" inputmode="decimal" name="pres_cantidad" class="pres-cantidad" placeholder="6"></td>
+    <td class="celda-costo">—</td>
+    <td class="celda-precios">—</td>
+    <td><button type="button" class="btn btn-borde quitar-presentacion" title="Quitar" style="padding:6px 12px;"><i class="bi bi-trash-fill"></i></button></td>
+  </tr>
+</template>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var RECETAS = {{ recetas|tojson }};
+  var GASTOS = {{ gastos|tojson }};
+  var MARGENES = {{ margenes|tojson }};
+  var REDONDEO = {{ redondeo|tojson }};
+  var PRESENTACIONES = {{ presentaciones|tojson }};
+  var COLORES = ['#16a34a', '#2563eb', '#7c3aed'];
+
+  var RECETAS_POR_ID = {};
+  RECETAS.forEach(function (r) { RECETAS_POR_ID[r.id] = r; });
+  var TOTAL_GASTOS_PCT = 0;
+  GASTOS.forEach(function (g) { TOTAL_GASTOS_PCT += Number(g.porcentaje) || 0; });
+
+  function formatear(n) {
+    return '$' + n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+  function aNumero(texto) {
+    texto = String(texto || '').replace(/\s|\$/g, '');
+    if (texto.indexOf(',') >= 0) { texto = texto.replace(/\./g, '').replace(',', '.'); }
+    var n = parseFloat(texto);
+    return isNaN(n) ? 0 : n;
+  }
+  function redondearJS(v, modo) {
+    if (modo === 'entero') { return Math.round(v); }
+    if (modo === 'centavos') { return Math.round(v * 100) / 100; }
+    return v;
+  }
+
+  function actualizar() {
+    var receta = RECETAS_POR_ID[document.getElementById('sel-receta').value];
+    var cantidad = aNumero(document.getElementById('cantidad-fabricada').value);
+    var costoUnidad = (receta && cantidad > 0) ? receta.costo_total / cantidad : 0;
+    document.getElementById('costo-unidad').textContent = formatear(costoUnidad);
+    document.getElementById('costo-lote').textContent = receta ? formatear(receta.costo_total) : '$0';
+
+    document.querySelectorAll('#cuerpo-presentaciones tr').forEach(function (fila) {
+      var cantPres = aNumero(fila.querySelector('.pres-cantidad').value);
+      var costo = costoUnidad * cantPres;
+      fila.querySelector('.celda-costo').textContent = costo > 0 ? formatear(costo) : '—';
+      var conGastos = costo * (1 + TOTAL_GASTOS_PCT / 100);
+      var html = '';
+      MARGENES.forEach(function (m, indice) {
+        var precio = (m.porcentaje > 0 && m.porcentaje < 100)
+          ? conGastos / (1 - m.porcentaje / 100) : conGastos;
+        precio = redondearJS(precio, REDONDEO);
+        html += '<span style="display:inline-flex; align-items:center; gap:4px; margin-right:8px; font-size:.85rem;">' +
+                '<i class="bi bi-circle-fill" style="color:' + COLORES[indice] + '; font-size:.55rem;"></i>' +
+                formatear(precio) + '</span>';
+      });
+      fila.querySelector('.celda-precios').innerHTML = html;
+    });
+  }
+
+  function agregarFila(nombre, cantidad) {
+    var clon = document.getElementById('plantilla-presentacion').content.cloneNode(true);
+    var fila = clon.querySelector('tr');
+    fila.querySelector('.pres-nombre').value = nombre || '';
+    fila.querySelector('.pres-cantidad').value = cantidad || '';
+    document.getElementById('cuerpo-presentaciones').appendChild(fila);
+    actualizar();
+  }
+
+  document.getElementById('agregar-presentacion').addEventListener('click', function () { agregarFila(); });
+  document.getElementById('sel-receta').addEventListener('change', actualizar);
+  document.getElementById('cantidad-fabricada').addEventListener('input', actualizar);
+  document.getElementById('cuerpo-presentaciones').addEventListener('input', actualizar);
+  document.getElementById('cuerpo-presentaciones').addEventListener('click', function (evento) {
+    var boton = evento.target.closest('.quitar-presentacion');
+    if (boton) { boton.closest('tr').remove(); if (!document.querySelector('#cuerpo-presentaciones tr')) { agregarFila(); } actualizar(); }
+  });
+
+  if (PRESENTACIONES.length) {
+    PRESENTACIONES.forEach(function (p) { agregarFila(p.nombre, p.cantidad_unidades); });
+  } else {
+    agregarFila('x6', '6');
+  }
+  actualizar();
+</script>
+{% endblock %}
+{# FIN fabricados_form.html #}

@@ -8,6 +8,7 @@ from routes.precios import bp as precios_bp
 from routes.recetas import bp as recetas_bp
 from routes.costos import bp as costos_bp
 from routes.configuracion import bp as configuracion_bp
+from routes.fabricados import bp as fabricados_bp
 
 app = Flask(__name__)
 app.register_blueprint(dashboard_bp)
@@ -18,6 +19,7 @@ app.register_blueprint(precios_bp)
 app.register_blueprint(recetas_bp)
 app.register_blueprint(costos_bp)
 app.register_blueprint(configuracion_bp)
+app.register_blueprint(fabricados_bp)
 
 
 def formato_moneda(valor):

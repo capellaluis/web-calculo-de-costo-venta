@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block titulo %}{{ calculo.nombre }}{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-boxes"></i> {{ calculo.nombre }}</h1>
+    <p class="subtitulo">Receta: {{ calculo.receta }} · Lote de {{ calculo.cantidad_fabricada }} unidades</p>
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn" href="{{ url_for('fabricados.editar', fabricado_id=calculo.id) }}"><i class="bi bi-pencil-fill"></i> Editar</a>
+    <a class="btn btn-borde" href="{{ url_for('fabricados.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
+    <form method="post" action="{{ url_for('fabricados.eliminar', fabricado_id=calculo.id) }}" style="margin:0;" onsubmit="return confirm('¿Eliminar este producto fabricado?');">
+      <button class="btn btn-borde" type="submit"><i class="bi bi-trash-fill"></i> Eliminar</button>
+    </form>
+  </div>
+</div>
+
+{% if aviso %}
+<div class="tarjeta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ aviso }}</div>
+{% endif %}
+
+{% if calculo.hay_incompatible %}
+<div class="tarjeta c-alerta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">
+  <i class="bi bi-exclamation-triangle-fill"></i> La receta tiene ingredientes con unidades incompatibles: revisala.
+</div>
+{% endif %}
+
+<div class="grid-stats" style="margin-bottom:18px;">
+  <div class="stat-card c-fabricados">
+    <div class="stat-icono"><i class="bi bi-cash-stack"></i></div>
+    <div>
+      <div class="stat-valor">{{ calculo.costo_lote|moneda }}</div>
+      <div class="stat-etiqueta">Costo del lote</div>
+    </div>
+  </div>
+  <div class="stat-card c-costos">
+    <div class="stat-icono"><i class="bi bi-tag-fill"></i></div>
+    <div>
+      <div class="stat-valor">{{ calculo.costo_unidad|moneda }}</div>
+      <div class="stat-etiqueta">Costo por unidad</div>
+    </div>
+  </div>
+  <div class="stat-card c-productos">
+    <div class="stat-icono"><i class="bi bi-boxes"></i></div>
+    <div>
+      <div class="stat-valor">{{ calculo.cantidad_fabricada }}</div>
+      <div class="stat-etiqueta">Unidades por lote</div>
+    </div>
+  </div>
+</div>
+
+<div class="tarjeta">
+  <h2><i class="bi bi-grid-3x3-gap-fill"></i> Presentaciones y precios de venta</h2>
+  {% if calculo.presentaciones %}
+  {% set colores = ['#16a34a', '#2563eb', '#7c3aed'] %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead>
+        <tr><th>Presentación</th><th>Unidades</th><th>Costo</th>
+          {% for p in calculo.presentaciones[0].precio.precios %}<th>{{ p.nombre }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+        {% for pr in calculo.presentaciones %}
+        <tr>
+          <td><strong>{{ pr.nombre }}</strong></td>
+          <td>{{ pr.cantidad_unidades }}</td>
+          <td>{{ pr.costo|moneda }}</td>
+          {% for p in pr.precio.precios %}
+          <td style="font-weight:700; color:{{ colores[loop.index0] }};">{{ p.precio|moneda }}
+            <div class="subtitulo" style="font-weight:400;">gan. {{ p.ganancia|moneda }}</div></td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-grid-3x3-gap"></i>Este producto no tiene presentaciones</div>
+  {% endif %}
+</div>
+
+{% if calculo.notas %}
+<div class="tarjeta c-fabricados" style="margin-top:18px;">
+  <h2><i class="bi bi-info-circle-fill"></i> Notas</h2>
+  <div>{{ calculo.notas }}</div>
+</div>
+{% endif %}
+{% endblock %}
+{# FIN fabricados_ver.html #}

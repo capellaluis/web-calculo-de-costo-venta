@@ -29,6 +29,7 @@
 .c-alerta      { --c: #dc2626; --c-suave: #fee2e2; }
 .c-ventas      { --c: #e11d48; --c-suave: #ffe4e6; }
 .c-precios     { --c: #0891b2; --c-suave: #cffafe; }
+.c-fabricados  { --c: #c026d3; --c-suave: #fae8ff; }
 
 /* ---------- Base ---------- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -337,6 +338,7 @@ a { color: inherit; text-decoration: none; }
 [data-tema="oscuro"] .c-alerta      { --c: #f87171; --c-suave: rgba(248, 113, 113, .18); }
 [data-tema="oscuro"] .c-ventas      { --c: #fb7185; --c-suave: rgba(251, 113, 133, .18); }
 [data-tema="oscuro"] .c-precios     { --c: #22d3ee; --c-suave: rgba(34, 211, 238, .18); }
+[data-tema="oscuro"] .c-fabricados  { --c: #e879f9; --c-suave: rgba(232, 121, 249, .18); }
 
 [data-tema="oscuro"] .nav-item.activo i,
 [data-tema="oscuro"] .btn { color: #0f172a; }
