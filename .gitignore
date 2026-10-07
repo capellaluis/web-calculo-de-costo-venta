@@ -24,3 +24,10 @@ htmlcov/
 .vscode/
 .idea/
 .DS_Store
+
+# Logos y archivos subidos por el usuario
+static/uploads/
+
+# Excel exportado y copias de seguridad de la base
+exports/
+backups/

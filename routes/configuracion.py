@@ -5,6 +5,7 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from database.db import obtener_conexion
 from services.fabricados import guardar_plantilla, leer_plantilla
 from services.margenes import REDONDEOS, ErrorMargen, calcular_precio, leer_redondeo, guardar_redondeo
+from services.negocio import ErrorNegocio, guardar_logo, guardar_nombre, quitar_logo
 from services.numeros import leer_decimal
 
 bp = Blueprint("configuracion", __name__, url_prefix="/config")
@@ -105,13 +106,39 @@ def inicio():
     finally:
         con.close()
 
-    aviso = ("Valores por defecto guardados."
-             if request.args.get("aviso") == "guardado" else None)
+    if request.args.get("aviso") == "guardado":
+        aviso = "Valores por defecto guardados."
+    elif request.args.get("aviso") == "negocio":
+        aviso = "Datos del negocio guardados."
+    else:
+        aviso = None
+    if error is None and request.args.get("error"):
+        error = request.args.get("error")
     return render_template("config_margenes.html", seccion="config",
                            gastos=plantilla["gastos"], margenes=plantilla["margenes"],
                            delivery=plantilla["delivery"], redondeo=redondeo,
                            redondeos=REDONDEOS, ejemplo=ejemplo, preview=preview,
                            error=error, aviso=aviso)
+
+
+@bp.route("/negocio", methods=["POST"])
+def negocio():
+    con = obtener_conexion()
+    try:
+        if request.form.get("accion") == "quitar_logo":
+            quitar_logo(con)
+            return redirect(url_for("configuracion.inicio", aviso="negocio"))
+        guardar_nombre(con, request.form.get("nombre_negocio", ""))
+        archivo = request.files.get("logo")
+        if archivo and archivo.filename:
+            try:
+                guardar_logo(con, archivo)
+            except ErrorNegocio as exc:
+                return redirect(url_for("configuracion.inicio",
+                                        aviso="negocio", error=str(exc)))
+        return redirect(url_for("configuracion.inicio", aviso="negocio"))
+    finally:
+        con.close()
 
 
 # FIN routes/configuracion.py

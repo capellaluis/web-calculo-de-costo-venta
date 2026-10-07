@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}Excel{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-file-earmark-excel-fill"></i> Excel</h1>
+    <p class="subtitulo">Descargá todos tus datos en un archivo Excel</p>
+  </div>
+</div>
+
+<div class="tarjeta">
+  <h2><i class="bi bi-download"></i> Exportar a Excel</h2>
+  <p class="subtitulo" style="margin-bottom:12px;">Se genera el archivo <strong>Mi_Negocio_AAAA-MM-DD.xlsx</strong> con estas hojas, listas para abrir en Excel:</p>
+  <ul style="margin-left:20px; margin-bottom:16px;">
+    <li>Proveedores</li>
+    <li>Productos</li>
+    <li>Compras</li>
+    <li>Detalle Compras</li>
+    <li>Historial Precios</li>
+    <li>Recetas</li>
+    <li>Ingredientes</li>
+    <li>Productos Fabricados</li>
+    <li>Costos y Precios</li>
+  </ul>
+  <a class="btn" href="{{ url_for('excel.descargar') }}"><i class="bi bi-file-earmark-arrow-down-fill"></i> Exportar a Excel</a>
+</div>
+{% endblock %}
+{# FIN excel.html #}

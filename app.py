@@ -1,5 +1,6 @@
 from flask import Flask
 
+from database.db import obtener_conexion
 from routes.dashboard import bp as dashboard_bp
 from routes.proveedores import bp as proveedores_bp
 from routes.productos import bp as productos_bp
@@ -9,6 +10,7 @@ from routes.recetas import bp as recetas_bp
 from routes.costos import bp as costos_bp
 from routes.configuracion import bp as configuracion_bp
 from routes.fabricados import bp as fabricados_bp
+from routes.excel import bp as excel_bp
 
 app = Flask(__name__)
 app.register_blueprint(dashboard_bp)
@@ -20,6 +22,7 @@ app.register_blueprint(recetas_bp)
 app.register_blueprint(costos_bp)
 app.register_blueprint(configuracion_bp)
 app.register_blueprint(fabricados_bp)
+app.register_blueprint(excel_bp)
 
 
 def formato_moneda(valor):
@@ -33,6 +36,22 @@ def formato_moneda(valor):
 
 
 app.add_template_filter(formato_moneda, "moneda")
+
+
+@app.context_processor
+def inyectar_negocio():
+    """Deja el nombre y el logo disponibles en todas las plantillas."""
+    try:
+        from services.negocio import leer_negocio
+        conexion = obtener_conexion()
+
+        try:
+            negocio = leer_negocio(conexion)
+        finally:
+            conexion.close()
+    except Exception:
+        negocio = {"nombre": "Mi Negocio", "logo": ""}
+    return {"negocio": negocio}
 
 
 if __name__ == "__main__":

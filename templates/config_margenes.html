@@ -16,7 +16,27 @@
 <div class="tarjeta c-alerta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ error }}</div>
 {% endif %}
 
-<form method="post" action="{{ url_for('configuracion.inicio') }}">
+<div class="tarjeta" style="margin-bottom:18px;">
+  <h2><i class="bi bi-shop"></i> Datos del negocio</h2>
+  <form method="post" action="{{ url_for('configuracion.negocio') }}" enctype="multipart/form-data">
+    <div style="display:flex; gap:18px; flex-wrap:wrap; align-items:end;">
+      <div class="campo" style="min-width:240px;"><label>Nombre del negocio</label><input type="text" name="nombre_negocio" value="{{ negocio.nombre }}"></div>
+      <div class="campo" style="min-width:240px;"><label>Logo (PNG, JPG, GIF, WEBP o SVG · máx 2 MB)</label><input type="file" name="logo" accept="image/*"></div>
+      <button class="btn" type="submit"><i class="bi bi-check-lg"></i> Guardar</button>
+    </div>
+  </form>
+  {% if negocio.logo %}
+  <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
+    <img src="{{ url_for('static', filename='uploads/' ~ negocio.logo) }}" alt="Logo" style="height:56px; border-radius:12px;">
+    <form method="post" action="{{ url_for('configuracion.negocio') }}" style="margin:0;">
+      <input type="hidden" name="accion" value="quitar_logo">
+      <button class="btn btn-borde" type="submit"><i class="bi bi-trash-fill"></i> Quitar logo</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+<form id="form-porcentajes" method="post" action="{{ url_for('configuracion.inicio') }}">
   <div class="tarjeta" style="margin-bottom:18px;">
     <h2><i class="bi bi-cash-coin"></i> Costo de ejemplo</h2>
     <p class="subtitulo" style="margin-bottom:10px;">Escribí un costo para ver el resultado. No se guarda.</p>
@@ -107,8 +127,9 @@
       document.getElementById('res-ganancia').textContent = '—';
     }
   }
-  document.querySelector('form').addEventListener('input', recalcular);
-  document.querySelector('form').addEventListener('change', recalcular);
+  var formPorcentajes = document.getElementById('form-porcentajes');
+  formPorcentajes.addEventListener('input', recalcular);
+  formPorcentajes.addEventListener('change', recalcular);
   recalcular();
 </script>
 {% endblock %}
