@@ -32,11 +32,11 @@
     </div>
 
     <h2 style="margin-top:14px;"><i class="bi bi-grid-3x3-gap-fill"></i> Presentaciones</h2>
-    <p class="subtitulo" style="margin-bottom:10px;">Ejemplos: x6, x12, x20. Se calculan solas con el costo del lote.</p>
+    <p class="subtitulo" style="margin-bottom:10px;">Ejemplos: x6, x12, x20. El costo y los precios se calculan solos. Los % se ajustan en Costos.</p>
     <div class="tabla-caja" style="margin-bottom:12px;">
       <table class="tabla">
         <thead>
-          <tr><th>Nombre</th><th style="width:130px;">Cantidad de unidades</th><th style="width:130px;">Costo</th><th>Precios de venta</th><th></th></tr>
+          <tr><th>Nombre</th><th style="width:130px;">Cantidad de unidades</th><th style="width:130px;">Costo</th><th>🏪 Tienda / 🛵 Delivery</th><th></th></tr>
         </thead>
         <tbody id="cuerpo-presentaciones"></tbody>
       </table>
@@ -70,16 +70,12 @@
 {% block scripts %}
 <script>
   var RECETAS = {{ recetas|tojson }};
-  var GASTOS = {{ gastos|tojson }};
-  var MARGENES = {{ margenes|tojson }};
   var REDONDEO = {{ redondeo|tojson }};
   var PRESENTACIONES = {{ presentaciones|tojson }};
-  var COLORES = ['#16a34a', '#2563eb', '#7c3aed'];
+  var PREVIEW = {{ preview|tojson }};  // {gastos, margen, delivery} en %
 
   var RECETAS_POR_ID = {};
   RECETAS.forEach(function (r) { RECETAS_POR_ID[r.id] = r; });
-  var TOTAL_GASTOS_PCT = 0;
-  GASTOS.forEach(function (g) { TOTAL_GASTOS_PCT += Number(g.porcentaje) || 0; });
 
   function formatear(n) {
     return '$' + n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -107,17 +103,14 @@
       var cantPres = aNumero(fila.querySelector('.pres-cantidad').value);
       var costo = costoUnidad * cantPres;
       fila.querySelector('.celda-costo').textContent = costo > 0 ? formatear(costo) : '—';
-      var conGastos = costo * (1 + TOTAL_GASTOS_PCT / 100);
-      var html = '';
-      MARGENES.forEach(function (m, indice) {
-        var precio = (m.porcentaje > 0 && m.porcentaje < 100)
-          ? conGastos / (1 - m.porcentaje / 100) : conGastos;
-        precio = redondearJS(precio, REDONDEO);
-        html += '<span style="display:inline-flex; align-items:center; gap:4px; margin-right:8px; font-size:.85rem;">' +
-                '<i class="bi bi-circle-fill" style="color:' + COLORES[indice] + '; font-size:.55rem;"></i>' +
-                formatear(precio) + '</span>';
-      });
-      fila.querySelector('.celda-precios').innerHTML = html;
+      var conGastos = costo * (1 + PREVIEW.gastos / 100);
+      var tienda = (PREVIEW.margen > 0 && PREVIEW.margen < 100) ? conGastos / (1 - PREVIEW.margen / 100) : conGastos;
+      tienda = redondearJS(tienda, REDONDEO);
+      var delivery = PREVIEW.delivery < 100 ? redondearJS(tienda / (1 - PREVIEW.delivery / 100), REDONDEO) : tienda;
+      fila.querySelector('.celda-precios').innerHTML =
+        '<span style="color:#16a34a; font-weight:700;">' + formatear(tienda) + '</span>' +
+        ' <span class="subtitulo">/</span> ' +
+        '<span style="color:#2563eb; font-weight:700;">' + formatear(delivery) + '</span>';
     });
   }
 

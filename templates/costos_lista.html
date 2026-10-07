@@ -5,81 +5,109 @@
 <div class="encabezado">
   <div>
     <h1><i class="bi bi-calculator-fill"></i> Costos</h1>
-    <p class="subtitulo">Escribí tus porcentajes y mirá el precio de venta de cada receta</p>
+    <p class="subtitulo">Elegí un producto fabricado y definí sus precios (tienda y delivery)</p>
   </div>
 </div>
 
 {% if aviso %}
 <div class="tarjeta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ aviso }}</div>
 {% endif %}
+{% if error %}
+<div class="tarjeta c-alerta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ error }}</div>
+{% endif %}
 
-{% set destino = 'costos' %}
-{% set form_action = url_for('configuracion.inicio') %}
-{% include "_form_margenes.html" %}
+{% if not fabricados %}
+<div class="tarjeta">
+  <div class="estado-vacio"><i class="bi bi-boxes"></i>Aún no hay productos fabricados. Creá uno en el menú "Productos fabricados"</div>
+</div>
+{% else %}
 
-<div class="grid-stats">
-  <div class="stat-card c-costos">
-    <div class="stat-icono"><i class="bi bi-egg-fried"></i></div>
-    <div>
-      <div class="stat-valor">{{ recetas|length }}</div>
-      <div class="stat-etiqueta">Recetas</div>
-    </div>
-  </div>
-  <div class="stat-card c-costos">
-    <div class="stat-icono"><i class="bi bi-calculator-fill"></i></div>
-    <div>
-      <div class="stat-valor">{{ promedio|moneda }}</div>
-      <div class="stat-etiqueta">Costo promedio por receta</div>
-    </div>
-  </div>
-  <div class="stat-card c-costos">
+<div class="tarjeta" style="margin-bottom:18px;">
+  <h2><i class="bi bi-box-seam-fill"></i> Producto</h2>
+  <form method="get" action="{{ url_for('costos.lista') }}">
+    <select name="fabricado" onchange="this.form.submit()" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit; min-width:260px;">
+      {% for f in fabricados %}
+      <option value="{{ f.id }}" {{ 'selected' if f.id|string == seleccionado }}>{{ f.nombre }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+
+{% if calculo %}
+<div class="grid-stats" style="margin-bottom:18px;">
+  <div class="stat-card c-fabricados">
     <div class="stat-icono"><i class="bi bi-cash-stack"></i></div>
-    <div>
-      <div class="stat-valor">{{ total|moneda }}</div>
-      <div class="stat-etiqueta">Costo total de las recetas</div>
-    </div>
+    <div><div class="stat-valor">{{ calculo.costo_lote|moneda }}</div><div class="stat-etiqueta">Costo del lote</div></div>
   </div>
   <div class="stat-card c-costos">
-    <div class="stat-icono"><i class="bi bi-trophy-fill"></i></div>
-    <div>
-      <div class="stat-valor" style="font-size:1.15rem;">{{ ingredientes[0].nombre if ingredientes else '—' }}</div>
-      <div class="stat-etiqueta">Ingrediente que más pesa</div>
-    </div>
+    <div class="stat-icono"><i class="bi bi-tag-fill"></i></div>
+    <div><div class="stat-valor">{{ calculo.costo_unidad|moneda }}</div><div class="stat-etiqueta">Costo por unidad</div></div>
+  </div>
+  <div class="stat-card c-recetas">
+    <div class="stat-icono"><i class="bi bi-percent"></i></div>
+    <div><div class="stat-valor">{{ '%g'|format(calculo.margen_elegido.porcentaje) }} %</div><div class="stat-etiqueta">Margen usado ({{ calculo.margen_elegido.nombre }})</div></div>
+  </div>
+  <div class="stat-card c-precios">
+    <div class="stat-icono"><i class="bi bi-truck"></i></div>
+    <div><div class="stat-valor">{{ '%g'|format(calculo.total_delivery) }} %</div><div class="stat-etiqueta">Suma % delivery</div></div>
   </div>
 </div>
 
-<h2 style="margin:8px 0 4px;"><i class="bi bi-grid-3x3-gap-fill"></i> Costo y precios por receta</h2>
-<p class="subtitulo" style="margin-bottom:14px;">El precio de venta suma los gastos fijos y divide por el margen de ganancia (se configura en Configuración).</p>
+<div class="tarjeta" style="margin-bottom:18px;">
+  <h2><i class="bi bi-sliders"></i> Precios de "{{ calculo.nombre }}" (solo este producto)</h2>
+  <form method="post" action="{{ url_for('costos.guardar') }}">
+    <input type="hidden" name="fabricado_id" value="{{ calculo.id }}">
+    {% set gastos = calculo.config.gastos %}
+    {% set margenes = calculo.config.margenes %}
+    {% set delivery = calculo.config.delivery %}
+    {% include "_editor_precios.html" %}
+    <div style="margin-top:16px;"><button class="btn" type="submit"><i class="bi bi-check-lg"></i> Guardar y ver precios</button></div>
+  </form>
+</div>
+
+<div class="tarjeta" style="margin-bottom:26px;">
+  <h2><i class="bi bi-grid-3x3-gap-fill"></i> Precios por presentación</h2>
+  <p class="subtitulo" style="margin-bottom:10px;">El <strong>delivery</strong> se calcula sobre el precio de tienda. Si escribís el <strong>precio de tienda</strong> se ajusta el <strong>margen de tienda</strong>; si escribís el <strong>precio de delivery</strong> se ajusta <strong>solo el % de delivery</strong> (la tienda no se toca).</p>
+  {% if calculo.presentaciones %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead><tr><th>Presentación</th><th>Unidades</th><th>Costo</th><th>🏪 Tienda</th><th>🛵 Delivery</th><th>Ganancia (tienda)</th></tr></thead>
+      <tbody>
+        {% for p in calculo.presentaciones %}
+        <tr data-costo="{{ '%g'|format(p.costo) }}">
+          <td><strong>{{ p.nombre }}</strong></td>
+          <td>{{ p.cantidad_unidades }}</td>
+          <td>{{ p.costo|moneda }}</td>
+          <td><input type="text" inputmode="decimal" class="inp-tienda" value="{% if p.tienda is not none %}{{ '%g'|format(p.tienda) }}{% endif %}" style="width:110px; color:#16a34a; font-weight:700; padding:6px 8px; border:1px solid var(--borde); border-radius:8px; font:inherit; background:var(--superficie);"></td>
+          <td><input type="text" inputmode="decimal" class="inp-delivery" value="{% if p.delivery is not none %}{{ '%g'|format(p.delivery) }}{% endif %}" style="width:110px; color:#2563eb; font-weight:700; padding:6px 8px; border:1px solid var(--borde); border-radius:8px; font:inherit; background:var(--superficie);"></td>
+          <td class="celda-ganancia">{% if p.ganancia is not none %}{{ p.ganancia|moneda }}{% else %}—{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-grid-3x3-gap"></i>Este producto no tiene presentaciones. Agregalas en "Productos fabricados"</div>
+  {% endif %}
+</div>
+{% endif %}
+{% endif %}
+
+<h2 style="margin:8px 0 14px;"><i class="bi bi-egg-fried"></i> Recetas (solo costos)</h2>
 {% if recetas %}
-<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:18px; margin-bottom:26px;">
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px; margin-bottom:26px;">
   {% for r in recetas %}
   <a class="tarjeta c-costos" href="{{ url_for('recetas.ver', receta_id=r.id) }}" style="display:block;">
     <h2 style="margin-bottom:4px;">{{ r.nombre }}</h2>
     <div class="stat-etiqueta" style="margin-bottom:10px;">Rendimiento: {{ r.rendimiento_cantidad }} {{ r.rendimiento_unidad }}</div>
-    <div class="stat-etiqueta">Costo base por {{ r.rendimiento_unidad }}</div>
-    <div style="font-size:1.05rem;">{{ r.costo_unidad|moneda }}</div>
-    <div class="stat-etiqueta" style="margin-top:6px;">Costo con gastos</div>
-    <div class="stat-valor">{{ r.precio.costo_con_gastos|moneda }}</div>
-    {% if r.precio.precios %}
-    <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
-      {% for p in r.precio.precios %}
-      <span style="display:inline-flex; align-items:center; gap:5px; font-size:.85rem;">
-        <i class="bi bi-circle-fill" style="color:{{ colores[loop.index0] }}; font-size:.6rem;"></i>
-        {{ p.nombre }}: <strong>{{ p.precio|moneda }}</strong>
-      </span>
-      {% endfor %}
-    </div>
-    {% endif %}
-    {% if r.hay_incompatible %}
-    <div class="c-alerta" style="color:var(--c); font-weight:600; margin-top:8px;"><i class="bi bi-exclamation-triangle-fill"></i> Revisar unidades</div>
-    {% endif %}
+    <div class="stat-etiqueta">Costo por {{ r.rendimiento_unidad }}</div>
+    <div class="stat-valor">{{ r.costo_unidad|moneda }}</div>
+    <div class="subtitulo" style="margin-top:10px;">Costo total: {{ r.total|moneda }}</div>
   </a>
   {% endfor %}
 </div>
 {% else %}
-<div class="tarjeta">
-  <div class="estado-vacio"><i class="bi bi-calculator"></i>Aún no hay recetas. Creá una en el menú Recetas para ver sus costos</div>
-</div>
+<div class="tarjeta"><div class="estado-vacio"><i class="bi bi-egg-fried"></i>Aún no hay recetas</div></div>
 {% endif %}
 
 <div class="tarjeta">
@@ -112,5 +140,104 @@
   <div class="estado-vacio"><i class="bi bi-bar-chart"></i>Aún no hay ingredientes para analizar</div>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var REDONDEO = {{ redondeo|tojson }};
+
+  function aNumero(texto) {
+    texto = String(texto || '').replace(/\s|\$/g, '');
+    if (texto.indexOf(',') >= 0) { texto = texto.replace(/\./g, '').replace(',', '.'); }
+    var n = parseFloat(texto);
+    return isNaN(n) ? 0 : n;
+  }
+  function formatear(n) {
+    return '$' + n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+  function redondearJS(v, modo) {
+    if (modo === 'entero') { return Math.round(v); }
+    if (modo === 'centavos') { return Math.round(v * 100) / 100; }
+    return v;
+  }
+  function suma(selector) {
+    var total = 0;
+    document.querySelectorAll(selector).forEach(function (i) { total += aNumero(i.value); });
+    return total;
+  }
+  function campoMargenElegido() {
+    var radio = document.querySelector('input[name="margen_elegido"]:checked');
+    if (!radio) { return null; }
+    return document.querySelector('input[name="margen' + radio.value + '_porcentaje"]');
+  }
+  function setMargen(pct) {
+    if (!isFinite(pct) || pct <= 0 || pct >= 100) { return; }
+    var campo = campoMargenElegido();
+    if (campo) { campo.value = String(Math.round(pct * 100) / 100); }
+  }
+  function recalcularPrecios(excepto) {
+    var gastos = suma('input[name="gasto_porcentaje"]');
+    var deliveryPct = suma('input[name="del_porcentaje"]');
+    var campo = campoMargenElegido();
+    var margen = campo ? aNumero(campo.value) : 0;
+
+    document.querySelectorAll('tr[data-costo]').forEach(function (fila) {
+      var costo = aNumero(fila.dataset.costo);
+      var conGastos = costo * (1 + gastos / 100);
+      var tienda = (margen > 0 && margen < 100) ? conGastos / (1 - margen / 100) : conGastos;
+      tienda = redondearJS(tienda, REDONDEO);
+      var delivery = deliveryPct < 100 ? redondearJS(tienda / (1 - deliveryPct / 100), REDONDEO) : tienda;
+
+      var inpTienda = fila.querySelector('.inp-tienda');
+      var inpDelivery = fila.querySelector('.inp-delivery');
+      if (inpTienda !== excepto) { inpTienda.value = String(tienda); }
+      if (inpDelivery !== excepto) { inpDelivery.value = String(delivery); }
+
+      var tiendaMostrada = (inpTienda === excepto) ? aNumero(inpTienda.value) : tienda;
+      var celda = fila.querySelector('.celda-ganancia');
+      if (celda) { celda.textContent = formatear(tiendaMostrada - conGastos); }
+    });
+  }
+  function manejarTienda(input) {
+    var fila = input.closest('tr');
+    var costo = aNumero(fila.dataset.costo);
+    var gastos = suma('input[name="gasto_porcentaje"]');
+    var conGastos = costo * (1 + gastos / 100);
+    var tienda = aNumero(input.value);
+    if (conGastos > 0 && tienda > conGastos) { setMargen((1 - conGastos / tienda) * 100); }
+    recalcularPrecios(input);
+  }
+  function ajustarSumaDelivery(nuevaSuma) {
+    var campos = document.querySelectorAll('input[name="del_porcentaje"]');
+    if (!campos.length) { return; }
+    var actual = 0;
+    campos.forEach(function (c) { actual += aNumero(c.value); });
+    var nuevo = aNumero(campos[0].value) + (nuevaSuma - actual);
+    if (nuevo < 0) { nuevo = 0; }
+    campos[0].value = String(Math.round(nuevo * 100) / 100);
+  }
+  function manejarDelivery(input) {
+    // El delivery se calcula sobre el precio de tienda. Al editar el delivery
+    // ajusto SOLO el % de delivery (no toca la tienda ni el margen).
+    var fila = input.closest('tr');
+    var tienda = aNumero(fila.querySelector('.inp-tienda').value);
+    var delivery = aNumero(input.value);
+    if (tienda > 0 && delivery > tienda) {
+      ajustarSumaDelivery((1 - tienda / delivery) * 100);
+    }
+    recalcularPrecios(input);
+  }
+  document.addEventListener('input', function (evento) {
+    if (evento.target.classList.contains('inp-tienda')) {
+      manejarTienda(evento.target);
+    } else if (evento.target.classList.contains('inp-delivery')) {
+      manejarDelivery(evento.target);
+    } else if (evento.target.name === 'gasto_porcentaje' || evento.target.name === 'del_porcentaje' ||
+               (evento.target.name && evento.target.name.indexOf('margen') === 0) ||
+               evento.target.name === 'margen_elegido') {
+      recalcularPrecios(null);
+    }
+  });
+</script>
 {% endblock %}
 {# FIN costos_lista.html #}

@@ -7,10 +7,10 @@ from services.fabricados import (
     ErrorFabricado,
     calcular_fabricado,
     guardar_fabricado,
+    leer_plantilla,
     presentaciones_de,
 )
-from services.gastos import leer_gastos
-from services.margenes import REDONDEOS, leer_margenes, leer_redondeo
+from services.margenes import leer_redondeo, total_porcentaje
 from services.numeros import leer_decimal
 from services.recetas import calcular_receta
 
@@ -30,12 +30,17 @@ def cargar_listas(con):
         total = calcular_receta(con, receta["id"], unidades=unidades)["total"]
         recetas.append({"id": receta["id"], "nombre": receta["nombre"],
                         "costo_total": float(total)})
+    plantilla = leer_plantilla(con)
+    margen = next((m for m in plantilla["margenes"] if m.get("elegido")),
+                  plantilla["margenes"][0] if plantilla["margenes"] else None)
     return {
         "recetas": recetas,
-        "gastos": leer_gastos(con),
-        "margenes": leer_margenes(con),
         "redondeo": leer_redondeo(con),
-        "redondeos": REDONDEOS,
+        "preview": {
+            "gastos": float(total_porcentaje(plantilla["gastos"])),
+            "margen": float(margen["porcentaje"]) if margen else 0.0,
+            "delivery": float(total_porcentaje(plantilla["delivery"])),
+        },
     }
 
 
@@ -44,14 +49,9 @@ def lista():
     aviso = AVISOS.get(request.args.get("aviso", ""))
     con = obtener_conexion()
     try:
-        gastos = leer_gastos(con)
-        margenes = leer_margenes(con)
-        redondeo = leer_redondeo(con)
-        fabricados = [
-            calcular_fabricado(con, fila["id"], gastos, margenes, redondeo)
-            for fila in con.execute(
-                "SELECT id FROM productos_fabricados ORDER BY nombre")
-        ]
+        fabricados = [calcular_fabricado(con, fila["id"])
+                      for fila in con.execute(
+                          "SELECT id FROM productos_fabricados ORDER BY nombre")]
     finally:
         con.close()
     return render_template("fabricados_lista.html", seccion="fabricados",
@@ -131,10 +131,7 @@ def nuevo():
 def ver(fabricado_id):
     con = obtener_conexion()
     try:
-        gastos = leer_gastos(con)
-        margenes = leer_margenes(con)
-        redondeo = leer_redondeo(con)
-        calculo = calcular_fabricado(con, fabricado_id, gastos, margenes, redondeo)
+        calculo = calcular_fabricado(con, fabricado_id)
     except ErrorFabricado:
         abort(404)
     finally:

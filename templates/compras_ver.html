@@ -19,6 +19,14 @@
 <div class="tarjeta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ aviso }}</div>
 {% endif %}
 
+{% if afectados %}
+<div class="tarjeta c-precios" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">
+  <i class="bi bi-info-circle-fill"></i>
+  Este cambio de precios actualiza el <strong>precio de tienda y delivery</strong> de:
+  {{ afectados|join(', ') }}.
+</div>
+{% endif %}
+
 <div class="tarjeta" style="margin-bottom:18px;">
   <h2><i class="bi bi-info-circle-fill"></i> Datos de la compra</h2>
   <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px;">

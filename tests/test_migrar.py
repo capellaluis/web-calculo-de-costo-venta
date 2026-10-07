@@ -23,7 +23,7 @@ def test_migracion_agrega_gastos_y_hace_copia(tmp_path):
     backups = tmp_path / "backups"
     aplicadas = migmod.migrar(ruta, backups)
 
-    assert aplicadas == ["001_gastos.sql"]
+    assert aplicadas == ["001_gastos.sql", "002_precios_fabricado.sql"]
     assert list(backups.glob("negocio_antes_migrar_*.db"))
 
     con = sqlite3.connect(ruta)
@@ -32,7 +32,7 @@ def test_migracion_agrega_gastos_y_hace_copia(tmp_path):
     version = con.execute("PRAGMA user_version").fetchone()[0]
     con.close()
     assert nombres == ["Gas", "Agua", "Luz"]
-    assert version == 1
+    assert version == 2
 
     # Segunda corrida: no aplica nada y no vuelve a copiar.
     assert migmod.migrar(ruta, backups) == []

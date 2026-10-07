@@ -5,6 +5,7 @@ from flask import Blueprint, abort, redirect, render_template, request, url_for
 
 from database.db import obtener_conexion
 from services.compras import ErrorCompra, eliminar_compra, registrar_compra
+from services.fabricados import fabricados_que_usan_producto
 from services.numeros import leer_decimal
 
 bp = Blueprint("compras", __name__, url_prefix="/compras")
@@ -168,10 +169,18 @@ def ver(compra_id):
             "JOIN productos pr ON pr.id = d.producto_id "
             "JOIN unidades u ON u.id = d.unidad_id "
             "WHERE d.compra_id = ? ORDER BY d.id", (compra_id,)).fetchall()
+
+        productos = con.execute(
+            "SELECT DISTINCT producto_id FROM detalle_compras WHERE compra_id = ?",
+            (compra_id,)).fetchall()
+        afectados = set()
+        for fila in productos:
+            afectados.update(fabricados_que_usan_producto(con, fila["producto_id"]))
+        afectados = sorted(afectados)
     finally:
         con.close()
     return render_template("compras_ver.html", seccion="compras", compra=compra,
-                           detalle=detalle,
+                           detalle=detalle, afectados=afectados,
                            aviso=AVISOS.get(request.args.get("aviso", "")))
 
 

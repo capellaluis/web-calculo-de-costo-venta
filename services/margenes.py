@@ -58,6 +58,15 @@ def leer_redondeo(con):
     return leer_configuracion(con).get("redondeo", "entero")
 
 
+def guardar_redondeo(con, redondeo):
+    if redondeo not in REDONDEOS:
+        raise ErrorMargen("Elegí una forma de redondeo válida.")
+    con.execute(
+        "INSERT INTO configuracion (clave, valor) VALUES ('redondeo', ?)"
+        " ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor", (redondeo,))
+    con.commit()
+
+
 def guardar_margenes(con, margenes, redondeo):
     """`margenes`: lista de {'numero', 'nombre', 'porcentaje'}."""
     if redondeo not in REDONDEOS:
@@ -76,6 +85,39 @@ def guardar_margenes(con, margenes, redondeo):
         "INSERT INTO configuracion (clave, valor) VALUES ('redondeo', ?)"
         " ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor", (redondeo,))
     con.commit()
+
+
+def total_porcentaje(lista):
+    """Suma de los porcentajes de una lista de diccionarios."""
+    total = Decimal("0")
+    for item in lista:
+        total += _decimal(item.get("porcentaje"))
+    return total
+
+
+def precio_delivery(tienda, delivery, redondeo="entero"):
+    """Precio de delivery: divide el precio de tienda por (1 - suma de % delivery)."""
+    total = total_porcentaje(delivery)
+    if total >= 100:
+        raise ErrorMargen("La suma de los % de delivery debe ser menor a 100 %.")
+    return redondear(_decimal(tienda) / (1 - total / 100), redondeo)
+
+
+def calcular_precio(costo, gastos, margen_porcentaje, delivery, redondeo="entero"):
+    """Desglose completo para un costo: con gastos, tienda, delivery y ganancia."""
+    costo = _decimal(costo)
+    con_gastos = costo * (1 + total_porcentaje(gastos) / 100)
+    tienda = None
+    precio_deliv = None
+    ganancia = None
+    if _decimal(margen_porcentaje) < 100:
+        tienda = redondear(con_gastos / (1 - _decimal(margen_porcentaje) / 100), redondeo)
+        ganancia = tienda - con_gastos
+        if total_porcentaje(delivery) < 100:
+            precio_deliv = redondear(
+                tienda / (1 - total_porcentaje(delivery) / 100), redondeo)
+    return {"costo": costo, "con_gastos": con_gastos, "tienda": tienda,
+            "delivery": precio_deliv, "ganancia": ganancia}
 
 
 def calcular_precios_venta(costo, gastos, margenes, redondeo="entero"):

@@ -53,12 +53,10 @@
 <div class="tarjeta">
   <h2><i class="bi bi-grid-3x3-gap-fill"></i> Presentaciones y precios de venta</h2>
   {% if calculo.presentaciones %}
-  {% set colores = ['#16a34a', '#2563eb', '#7c3aed'] %}
   <div class="tabla-caja">
     <table class="tabla">
       <thead>
-        <tr><th>Presentación</th><th>Unidades</th><th>Costo</th>
-          {% for p in calculo.presentaciones[0].precio.precios %}<th>{{ p.nombre }}</th>{% endfor %}</tr>
+        <tr><th>Presentación</th><th>Unidades</th><th>Costo</th><th>🏪 Tienda</th><th>🛵 Delivery</th><th>Ganancia (tienda)</th></tr>
       </thead>
       <tbody>
         {% for pr in calculo.presentaciones %}
@@ -66,10 +64,9 @@
           <td><strong>{{ pr.nombre }}</strong></td>
           <td>{{ pr.cantidad_unidades }}</td>
           <td>{{ pr.costo|moneda }}</td>
-          {% for p in pr.precio.precios %}
-          <td style="font-weight:700; color:{{ colores[loop.index0] }};">{{ p.precio|moneda }}
-            <div class="subtitulo" style="font-weight:400;">gan. {{ p.ganancia|moneda }}</div></td>
-          {% endfor %}
+          <td style="font-weight:700; color:#16a34a;">{% if pr.tienda is not none %}{{ pr.tienda|moneda }}{% else %}—{% endif %}</td>
+          <td style="font-weight:700; color:#2563eb;">{% if pr.delivery is not none %}{{ pr.delivery|moneda }}{% else %}—{% endif %}</td>
+          <td>{% if pr.ganancia is not none %}{{ pr.ganancia|moneda }}{% else %}—{% endif %}</td>
         </tr>
         {% endfor %}
       </tbody>

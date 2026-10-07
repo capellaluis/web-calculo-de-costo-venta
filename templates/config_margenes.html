@@ -5,7 +5,7 @@
 <div class="encabezado">
   <div>
     <h1><i class="bi bi-gear-fill"></i> Configuración</h1>
-    <p class="subtitulo">Gastos fijos y márgenes de ganancia</p>
+    <p class="subtitulo">Valores por defecto: un producto nuevo arranca con esta configuración</p>
   </div>
 </div>
 
@@ -16,6 +16,100 @@
 <div class="tarjeta c-alerta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ error }}</div>
 {% endif %}
 
-{% include "_form_margenes.html" %}
+<form method="post" action="{{ url_for('configuracion.inicio') }}">
+  <div class="tarjeta" style="margin-bottom:18px;">
+    <h2><i class="bi bi-cash-coin"></i> Costo de ejemplo</h2>
+    <p class="subtitulo" style="margin-bottom:10px;">Escribí un costo para ver el resultado. No se guarda.</p>
+    <div class="campo" style="max-width:220px;">
+      <label>Costo</label>
+      <input type="text" inputmode="decimal" id="costo-ejemplo" name="costo_ejemplo" value="{{ '%g'|format(ejemplo) }}">
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-top:14px;">
+      <div><div class="stat-etiqueta">Costo con gastos</div><div class="stat-valor" id="res-con-gastos" style="font-size:1.3rem;">{{ preview.con_gastos|moneda }}</div></div>
+      <div><div class="stat-etiqueta">🏪 Precio tienda</div><div class="stat-valor" id="res-tienda" style="font-size:1.3rem; color:#16a34a;">{% if preview.tienda is not none %}{{ preview.tienda|moneda }}{% else %}—{% endif %}</div></div>
+      <div><div class="stat-etiqueta">🛵 Precio delivery</div><div class="stat-valor" id="res-delivery" style="font-size:1.3rem; color:#2563eb;">{% if preview.delivery is not none %}{{ preview.delivery|moneda }}{% else %}—{% endif %}</div></div>
+      <div><div class="stat-etiqueta">Ganancia (tienda)</div><div class="stat-valor" id="res-ganancia" style="font-size:1.3rem;">{% if preview.ganancia is not none %}{{ preview.ganancia|moneda }}{% else %}—{% endif %}</div></div>
+    </div>
+  </div>
+
+  <div class="tarjeta" style="margin-bottom:18px;">
+    <h2><i class="bi bi-sliders"></i> Porcentajes por defecto</h2>
+    {% include "_editor_precios.html" %}
+
+    <div class="campo" style="max-width:300px; margin-top:16px;">
+      <label>Redondeo del precio</label>
+      <select name="redondeo">
+        {% for clave, texto in redondeos.items() %}
+        <option value="{{ clave }}" {{ 'selected' if redondeo == clave }}>{{ texto }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="margin-top:16px;"><button class="btn" type="submit"><i class="bi bi-check-lg"></i> Guardar</button></div>
+  </div>
+</form>
+
+<div class="tarjeta c-config">
+  <h2><i class="bi bi-info-circle-fill"></i> Cómo se calcula</h2>
+  <ul style="margin-left:20px;">
+    <li><strong>Costo con gastos</strong> = costo × (1 + suma de gastos %).</li>
+    <li><strong>Precio de tienda</strong> = costo con gastos ÷ (1 − margen %).</li>
+    <li><strong>Precio delivery</strong> = precio de tienda ÷ (1 − (comisión + IVA + 2,9 %) …). Así, tras el descuento, te queda el precio de tienda.</li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function aNumero(texto) {
+    texto = String(texto || '').replace(/\s|\$/g, '');
+    if (texto.indexOf(',') >= 0) { texto = texto.replace(/\./g, '').replace(',', '.'); }
+    var n = parseFloat(texto);
+    return isNaN(n) ? 0 : n;
+  }
+  function formatear(n) { return '$' + n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
+  function redondearJS(v, modo) {
+    if (modo === 'entero') { return Math.round(v); }
+    if (modo === 'centavos') { return Math.round(v * 100) / 100; }
+    return v;
+  }
+  function suma(selector) {
+    var total = 0;
+    document.querySelectorAll(selector).forEach(function (i) { total += aNumero(i.value); });
+    return total;
+  }
+  function recalcular() {
+    var costo = aNumero(document.getElementById('costo-ejemplo').value);
+    var gastos = suma('input[name="gasto_porcentaje"]');
+    var conGastos = costo * (1 + gastos / 100);
+    var deliveryPct = suma('input[name="del_porcentaje"]');
+    var radio = document.querySelector('input[name="margen_elegido"]:checked');
+    var margen = 0;
+    if (radio) {
+      var campo = document.querySelector('input[name="margen' + radio.value + '_porcentaje"]');
+      if (campo) { margen = aNumero(campo.value); }
+    }
+    var modo = document.querySelector('select[name="redondeo"]').value;
+    document.getElementById('res-con-gastos').textContent = formatear(conGastos);
+    if (margen > 0 && margen < 100) {
+      var tienda = redondearJS(conGastos / (1 - margen / 100), modo);
+      document.getElementById('res-tienda').textContent = formatear(tienda);
+      document.getElementById('res-ganancia').textContent = formatear(tienda - conGastos);
+      if (deliveryPct < 100) {
+        document.getElementById('res-delivery').textContent = formatear(redondearJS(tienda / (1 - deliveryPct / 100), modo));
+      } else { document.getElementById('res-delivery').textContent = '—'; }
+    } else if (margen === 0) {
+      document.getElementById('res-tienda').textContent = formatear(conGastos);
+      document.getElementById('res-ganancia').textContent = formatear(0);
+      document.getElementById('res-delivery').textContent = deliveryPct < 100 ? formatear(redondearJS(conGastos / (1 - deliveryPct / 100), modo)) : '—';
+    } else {
+      document.getElementById('res-tienda').textContent = '—';
+      document.getElementById('res-delivery').textContent = '—';
+      document.getElementById('res-ganancia').textContent = '—';
+    }
+  }
+  document.querySelector('form').addEventListener('input', recalcular);
+  document.querySelector('form').addEventListener('change', recalcular);
+  recalcular();
+</script>
 {% endblock %}
 {# FIN config_margenes.html #}

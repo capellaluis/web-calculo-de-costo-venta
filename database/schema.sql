@@ -138,6 +138,34 @@ CREATE TABLE IF NOT EXISTS gastos (
     creado_en   TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
+-- ---------- PRECIOS POR PRODUCTO FABRICADO ----------
+-- Cada producto fabricado guarda SUS gastos, SUS márgenes y SUS % de delivery.
+-- Cambiar los de un producto NO afecta a los demás.
+CREATE TABLE IF NOT EXISTS fabricado_gastos (
+    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+    producto_fabricado_id  INTEGER NOT NULL REFERENCES productos_fabricados(id) ON DELETE CASCADE,
+    nombre                 TEXT NOT NULL,
+    porcentaje             REAL NOT NULL DEFAULT 0,
+    orden                  INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS fabricado_margenes (
+    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+    producto_fabricado_id  INTEGER NOT NULL REFERENCES productos_fabricados(id) ON DELETE CASCADE,
+    numero                 INTEGER NOT NULL,
+    nombre                 TEXT NOT NULL,
+    porcentaje             REAL NOT NULL DEFAULT 0,
+    elegido                INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS fabricado_delivery (
+    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+    producto_fabricado_id  INTEGER NOT NULL REFERENCES productos_fabricados(id) ON DELETE CASCADE,
+    nombre                 TEXT NOT NULL,
+    porcentaje             REAL NOT NULL DEFAULT 0,
+    orden                  INTEGER NOT NULL DEFAULT 0
+);
+
 -- ---------- CONFIGURACION ----------
 CREATE TABLE IF NOT EXISTS configuracion (
     clave   TEXT PRIMARY KEY,
