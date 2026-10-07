@@ -34,4 +34,13 @@ def con(db_temporal):
         conexion.close()
 
 
+@pytest.fixture(autouse=True)
+def _backups_temporales(tmp_path, monkeypatch):
+    """Aísla las copias de seguridad en una carpeta temporal en cada prueba."""
+    import services.copias as copias
+    monkeypatch.setattr(copias, "carpeta_backups_por_defecto",
+                        lambda: tmp_path / "backups")
+    yield
+
+
 # FIN tests/conftest.py

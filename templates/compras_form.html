@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block titulo %}Nueva compra{% endblock %}
+{% block titulo %}{{ 'Editar compra' if editando else 'Nueva compra' }}{% endblock %}
 {% block contenido %}
 
 <div class="encabezado">
   <div>
-    <h1><i class="bi bi-cart-fill"></i> Nueva compra</h1>
+    <h1><i class="bi bi-cart-fill"></i> {{ 'Editar compra' if editando else 'Nueva compra' }}</h1>
     <p class="subtitulo">El precio por unidad se calcula solo. Los campos con * son obligatorios</p>
   </div>
   <a class="btn btn-borde" href="{{ url_for('compras.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
@@ -15,7 +15,7 @@
 {% endif %}
 
 <div class="tarjeta">
-  <form method="post" action="{{ url_for('compras.nueva') }}">
+  <form method="post" action="{{ url_for('compras.editar', compra_id=compra_id) if editando else url_for('compras.nueva') }}">
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:0 18px; margin-bottom:8px;">
       <div class="campo"><label>Proveedor *</label>
         <select name="proveedor_id" required>

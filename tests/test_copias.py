@@ -1,6 +1,7 @@
 """Pruebas de Copias de seguridad (Fase 15)."""
 
 import sqlite3
+from pathlib import Path
 
 import app as appmod
 import services.copias as copias
@@ -59,6 +60,21 @@ def test_pantalla_copias(db_temporal):
     respuesta = appmod.app.test_client().get("/copias/")
     assert respuesta.status_code == 200
     assert "Copias de seguridad" in respuesta.get_data(as_text=True)
+
+
+def test_copia_automatica_tras_un_cambio(db_temporal, tmp_path):
+    cliente = appmod.app.test_client()
+    carpeta = tmp_path / "backups"
+
+    # Un GET no genera copia.
+    cliente.get("/proveedores/")
+    if carpeta.exists():
+        assert not list(carpeta.glob("*.db"))
+
+    # Un cambio que guarda (POST -> redirect) genera copia automática.
+    respuesta = cliente.post("/proveedores/nuevo", data={"nombre": "Auto Copia"})
+    assert respuesta.status_code == 302
+    assert list(carpeta.glob("*.db"))
 
 
 # FIN tests/test_copias.py

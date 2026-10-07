@@ -13,21 +13,33 @@ import database.db as dbmod
 LIMITE_COPIAS = 10
 
 
-def _carpeta(carpeta=None):
-    if carpeta:
-        return Path(carpeta)
+def carpeta_backups_por_defecto():
     return Path(dbmod.RUTA_DB).resolve().parent.parent / "backups"
 
 
-def carpeta_backups():
-    return _carpeta()
+def carpeta_backups(carpeta=None):
+    return Path(carpeta) if carpeta else carpeta_backups_por_defecto()
+
+
+def _carpeta(carpeta=None):
+    return carpeta_backups(carpeta)
+
+
+def _ruta_unica(carpeta, base):
+    destino = carpeta / base
+    contador = 1
+    while destino.exists():
+        destino = carpeta / (base[:-3] + "_%d.db" % contador)
+        contador += 1
+    return destino
 
 
 def crear_copia(carpeta=None):
-    """Crea una copia de la base y devuelve su ruta."""
+    """Crea una copia de la base y devuelve su ruta (nombre único)."""
     carpeta = _carpeta(carpeta)
     carpeta.mkdir(parents=True, exist_ok=True)
-    destino = carpeta / ("negocio_%s.db" % datetime.now().strftime("%Y-%m-%d_%H%M%S"))
+    base = "negocio_%s.db" % datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    destino = _ruta_unica(carpeta, base)
     origen = sqlite3.connect(dbmod.RUTA_DB)
     copia = sqlite3.connect(destino)
     try:

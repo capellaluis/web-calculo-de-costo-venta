@@ -8,6 +8,7 @@
     <p class="subtitulo">{{ compra.proveedor }}</p>
   </div>
   <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn" href="{{ url_for('compras.editar', compra_id=compra.id) }}"><i class="bi bi-pencil-fill"></i> Editar</a>
     <a class="btn btn-borde" href="{{ url_for('compras.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
     <form method="post" action="{{ url_for('compras.eliminar', compra_id=compra.id) }}" style="margin:0;" onsubmit="return confirm('¿Eliminar esta compra? Se recalcularán los precios.');">
       <button class="btn btn-borde" type="submit"><i class="bi bi-trash-fill"></i> Eliminar</button>

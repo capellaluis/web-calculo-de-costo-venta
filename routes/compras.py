@@ -4,7 +4,12 @@ from decimal import InvalidOperation
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 
 from database.db import obtener_conexion
-from services.compras import ErrorCompra, eliminar_compra, registrar_compra
+from services.compras import (
+    ErrorCompra,
+    actualizar_compra,
+    eliminar_compra,
+    registrar_compra,
+)
 from services.fabricados import fabricados_que_usan_producto
 from services.numeros import leer_decimal
 
@@ -12,6 +17,7 @@ bp = Blueprint("compras", __name__, url_prefix="/compras")
 
 AVISOS = {
     "creado": "Compra registrada correctamente.",
+    "editado": "Cambios guardados correctamente.",
     "eliminado": "Compra eliminada.",
     "error": "No se pudo eliminar la compra.",
 }
@@ -150,7 +156,60 @@ def nueva():
     finally:
         con.close()
     return render_template("compras_form.html", seccion="compras",
-                           datos=datos, lineas=lineas, error=error, **listas)
+                           datos=datos, lineas=lineas, error=error,
+                           editando=False, compra_id=None, **listas)
+
+
+@bp.route("/<int:compra_id>/editar", methods=["GET", "POST"])
+def editar(compra_id):
+    con = obtener_conexion()
+    error = None
+    try:
+        compra = con.execute(
+            "SELECT * FROM compras WHERE id = ?", (compra_id,)).fetchone()
+        if compra is None:
+            abort(404)
+        datos = {
+            "proveedor_id": str(compra["proveedor_id"]),
+            "fecha": compra["fecha"],
+            "numero_documento": compra["numero_documento"] or "",
+            "observaciones": compra["observaciones"] or "",
+        }
+        lineas = [
+            {"producto_id": str(fila["producto_id"]),
+             "cantidad": ("%g" % fila["cantidad"]),
+             "unidad_id": str(fila["unidad_id"]),
+             "precio_total": ("%g" % fila["precio_total"])}
+            for fila in con.execute(
+                "SELECT * FROM detalle_compras WHERE compra_id = ? ORDER BY id",
+                (compra_id,))
+        ]
+        if request.method == "POST":
+            datos = {
+                "proveedor_id": request.form.get("proveedor_id", "").strip(),
+                "fecha": request.form.get("fecha", "").strip(),
+                "numero_documento": request.form.get("numero_documento", "").strip(),
+                "observaciones": request.form.get("observaciones", "").strip(),
+            }
+            lineas, error = _leer_lineas()
+            if error is None:
+                try:
+                    actualizar_compra(
+                        compra_id, int(datos["proveedor_id"]), datos["fecha"],
+                        datos["numero_documento"], datos["observaciones"], lineas)
+                    return redirect(url_for("compras.ver", compra_id=compra_id,
+                                            aviso="editado"))
+                except ErrorCompra as exc:
+                    error = str(exc)
+                except ValueError:
+                    error = "Elegí el proveedor y la fecha de la compra."
+            lineas = _lineas_mostradas()
+        listas = cargar_listas(con)
+    finally:
+        con.close()
+    return render_template("compras_form.html", seccion="compras", datos=datos,
+                           lineas=lineas, error=error, editando=True,
+                           compra_id=compra_id, **listas)
 
 
 @bp.route("/<int:compra_id>")

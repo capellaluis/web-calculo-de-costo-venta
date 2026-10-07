@@ -55,6 +55,25 @@ def formato_moneda(valor):
 app.add_template_filter(formato_moneda, "moneda")
 
 
+# Endpoints que NO disparan copia automática (ya manejan su propia copia).
+ENDPOINTS_SIN_COPIA = {"copias.crear", "copias.restaurar", "copias.eliminar", "static"}
+
+
+@app.after_request
+def copia_automatica(response):
+    """Crea una copia de seguridad automáticamente después de cada cambio."""
+    from flask import request
+    if (request.method == "POST" and response.status_code == 302
+            and request.endpoint not in ENDPOINTS_SIN_COPIA):
+        try:
+            from services.copias import crear_copia, limitar_copias
+            crear_copia()
+            limitar_copias(limite=30)
+        except Exception:
+            pass
+    return response
+
+
 @app.context_processor
 def inyectar_negocio():
     """Deja el nombre y el logo disponibles en todas las plantillas."""
