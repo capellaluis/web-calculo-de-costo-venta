@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block titulo %}Copias de seguridad{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-hdd-stack-fill"></i> Copias de seguridad</h1>
+    <p class="subtitulo">Cuidá tus datos: creá, descargá y restaurá copias</p>
+  </div>
+  <a class="btn btn-borde" href="{{ url_for('configuracion.inicio') }}"><i class="bi bi-arrow-left"></i> Configuración</a>
+</div>
+
+{% if aviso %}
+<div class="tarjeta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ aviso }}</div>
+{% endif %}
+
+<div class="tarjeta" style="margin-bottom:18px;">
+  <h2><i class="bi bi-plus-circle"></i> Crear una copia</h2>
+  <p class="subtitulo" style="margin-bottom:10px;">Se guarda una copia de <strong>toda tu base</strong> con fecha y hora. Se conservan las últimas {{ limite }} copias automáticas.</p>
+  <form method="post" action="{{ url_for('copias.crear') }}">
+    <button class="btn" type="submit"><i class="bi bi-hdd-fill"></i> Crear copia ahora</button>
+  </form>
+  <p class="subtitulo" style="margin-top:12px;"><i class="bi bi-exclamation-triangle-fill"></i> Guardá una copia <strong>fuera</strong> de la computadora/Raspberry (pendrive, nube): así no la perdés si falla el disco.</p>
+</div>
+
+<div class="tarjeta" style="margin-bottom:18px;">
+  <h2><i class="bi bi-list-ul"></i> Copias guardadas</h2>
+  {% if copias %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead><tr><th>Archivo</th><th>Fecha</th><th>Tamaño</th><th></th></tr></thead>
+      <tbody>
+        {% for c in copias %}
+        <tr>
+          <td>{{ c.nombre }}</td>
+          <td>{{ c.fecha.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td>{{ (c.tamano / 1024)|round(1) }} KB</td>
+          <td>
+            <div style="display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap;">
+              <a class="btn btn-suave" style="padding:6px 12px;" href="{{ url_for('copias.descargar', nombre=c.nombre) }}"><i class="bi bi-download"></i> Descargar</a>
+              <form method="post" action="{{ url_for('copias.restaurar') }}" style="margin:0;" onsubmit="return confirm('¿Restaurar esta copia? Se reemplazan los datos actuales (se guarda una copia de seguridad antes).');">
+                <input type="hidden" name="nombre" value="{{ c.nombre }}">
+                <button class="btn btn-borde" style="padding:6px 12px;" type="submit"><i class="bi bi-arrow-counterclockwise"></i> Restaurar</button>
+              </form>
+              <form method="post" action="{{ url_for('copias.eliminar') }}" style="margin:0;" onsubmit="return confirm('¿Eliminar esta copia?');">
+                <input type="hidden" name="nombre" value="{{ c.nombre }}">
+                <button class="btn btn-borde" style="padding:6px 12px;" type="submit"><i class="bi bi-trash-fill"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-hdd"></i>Aún no hay copias. Creá la primera con el botón de arriba</div>
+  {% endif %}
+</div>
+
+<div class="tarjeta c-config">
+  <h2><i class="bi bi-info-circle-fill"></i> Cómo restaurar (paso a paso)</h2>
+  <ol style="margin-left:20px;">
+    <li>Fijate en la lista cuál copia querés, por su <strong>fecha</strong>.</li>
+    <li>Apretá <strong>Restaurar</strong> y confirmá. El sistema <strong>guarda una copia de la actual</strong> antes de reemplazarla, por las dudas.</li>
+    <li>Recargá la página (Ctrl + F5): tus datos vuelven al momento de esa copia.</li>
+  </ol>
+  <p class="subtitulo">Si algo saliera mal, la copia previa queda guardada como <code>negocio_antes_restaurar_…</code> y la podés restaurar igual.</p>
+</div>
+{% endblock %}
+{# FIN copias.html #}

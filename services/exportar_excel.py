@@ -220,4 +220,10 @@ def construir_libro(con):
     return wb
 
 
+# Alias públicos para reutilizar desde otros módulos (ej: reportes).
+agregar_hoja = _agregar_hoja
+a_fecha = _a_fecha
+a_fecha_hora = _a_fecha_hora
+
+
 # FIN services/exportar_excel.py

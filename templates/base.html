@@ -52,7 +52,7 @@
   </a>
 
   <div class="menu-titulo">Sistema</div>
-  <a class="nav-item c-reportes{{ ' activo' if seccion == 'reportes' }}" href="#">
+  <a class="nav-item c-reportes{{ ' activo' if seccion == 'reportes' }}" href="{{ url_for('reportes.inicio') }}">
     <i class="bi bi-bar-chart-fill"></i><span>Reportes</span>
   </a>
   <a class="nav-item c-compras{{ ' activo' if seccion == 'excel' }}" href="{{ url_for('excel.inicio') }}">

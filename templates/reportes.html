@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block titulo %}Reportes{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-bar-chart-fill"></i> Reportes</h1>
+    <p class="subtitulo">Elegí un reporte, filtrá y exportá a Excel</p>
+  </div>
+</div>
+
+<div class="tarjeta" style="margin-bottom:18px;">
+  <form method="get" action="{{ url_for('reportes.inicio') }}" style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+    <div>
+      <label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Reporte</label>
+      <select name="tipo" onchange="this.form.submit()" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+        {% for clave, nombre in tipos.items() %}
+        <option value="{{ clave }}" {{ 'selected' if clave == tipo }}>{{ nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% if tipo in ['compras', 'historial'] %}
+    <div>
+      <label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Desde</label>
+      <input type="date" name="desde" value="{{ filtros.desde }}" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+    </div>
+    <div>
+      <label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Hasta</label>
+      <input type="date" name="hasta" value="{{ filtros.hasta }}" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+    </div>
+    {% endif %}
+
+    {% if tipo == 'compras' %}
+    <div>
+      <label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Proveedor</label>
+      <select name="proveedor" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+        <option value="">Todos</option>
+        {% for p in proveedores %}<option value="{{ p.id }}" {{ 'selected' if p.id|string == filtros.proveedor }}>{{ p.nombre }}</option>{% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    {% if tipo == 'productos' %}
+    <div>
+      <label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Categoría</label>
+      <select name="categoria" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+        <option value="">Todas</option>
+        {% for c in categorias %}<option value="{{ c }}" {{ 'selected' if c == filtros.categoria }}>{{ c }}</option>{% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    {% if tipo == 'historial' %}
+    <div>
+      <label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Producto</label>
+      <select name="producto" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+        <option value="">Todos</option>
+        {% for p in productos %}<option value="{{ p.id }}" {{ 'selected' if p.id|string == filtros.producto }}>{{ p.nombre }}</option>{% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <button class="btn" type="submit"><i class="bi bi-search"></i> Ver</button>
+    <a class="btn btn-borde" href="{{ url_for('reportes.exportar', tipo=tipo, desde=filtros.desde, hasta=filtros.hasta, proveedor=filtros.proveedor, producto=filtros.producto, categoria=filtros.categoria) }}"><i class="bi bi-file-earmark-excel-fill"></i> Exportar</a>
+  </form>
+</div>
+
+<div class="tarjeta">
+  <h2>{{ reporte.titulo }}</h2>
+  {% if reporte.resumen %}
+  <p style="margin:8px 0 14px;"><span class="stat-etiqueta">{{ reporte.resumen.label }}:</span>
+    <strong>{% if reporte.resumen.formato == 'money' %}{{ reporte.resumen.valor|moneda }}{% else %}{{ reporte.resumen.valor }}{% endif %}</strong>
+  </p>
+  {% endif %}
+
+  {% if reporte.filas %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead><tr>{% for h in reporte.encabezados %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for fila in reporte.filas %}
+        <tr>
+          {% for valor in fila %}
+          {% set fmt = reporte.formatos[loop.index0] %}
+          <td>{% if fmt == 'money' %}{{ valor|moneda }}{% else %}{{ valor }}{% endif %}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-bar-chart"></i>No hay datos para mostrar con esos filtros</div>
+  {% endif %}
+</div>
+{% endblock %}
+{# FIN reportes.html #}

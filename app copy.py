@@ -20,6 +20,8 @@ from routes.costos import bp as costos_bp
 from routes.configuracion import bp as configuracion_bp
 from routes.fabricados import bp as fabricados_bp
 from routes.excel import bp as excel_bp
+from routes.reportes import bp as reportes_bp
+from routes.copias import bp as copias_bp
 
 app = Flask(__name__)
 # La clave secreta viene del archivo .env. Si falta, se usa una temporal
@@ -36,6 +38,8 @@ app.register_blueprint(costos_bp)
 app.register_blueprint(configuracion_bp)
 app.register_blueprint(fabricados_bp)
 app.register_blueprint(excel_bp)
+app.register_blueprint(reportes_bp)
+app.register_blueprint(copias_bp)
 
 
 def formato_moneda(valor):
