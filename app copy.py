@@ -22,11 +22,13 @@ from routes.fabricados import bp as fabricados_bp
 from routes.excel import bp as excel_bp
 from routes.reportes import bp as reportes_bp
 from routes.copias import bp as copias_bp
+from routes.auth import bp as auth_bp
+from services.seguridad import obtener_secret_key
 
 app = Flask(__name__)
-# La clave secreta viene del archivo .env. Si falta, se usa una temporal
-# (sirve para desarrollar, pero se pierde al reiniciar).
-app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(32).hex()
+# La clave secreta viene del .env o de un archivo local (para mantener la sesión).
+app.secret_key = obtener_secret_key()
+app.config.setdefault("REQUIERE_LOGIN", True)
 
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(proveedores_bp)
@@ -40,6 +42,22 @@ app.register_blueprint(fabricados_bp)
 app.register_blueprint(excel_bp)
 app.register_blueprint(reportes_bp)
 app.register_blueprint(copias_bp)
+app.register_blueprint(auth_bp)
+
+
+ENDPOINTS_SIN_LOGIN = {"auth.login", "auth.recuperar", "auth.recuperar_cambiar", "static"}
+
+
+@app.before_request
+def requerir_login():
+    if not app.config.get("REQUIERE_LOGIN", True):
+        return None
+    from flask import redirect, request, session, url_for
+    if request.endpoint in ENDPOINTS_SIN_LOGIN or request.endpoint is None:
+        return None
+    if not session.get("usuario"):
+        return redirect(url_for("auth.login"))
+    return None
 
 
 def formato_moneda(valor):
@@ -56,7 +74,8 @@ app.add_template_filter(formato_moneda, "moneda")
 
 
 # Endpoints que NO disparan copia automática (ya manejan su propia copia).
-ENDPOINTS_SIN_COPIA = {"copias.crear", "copias.restaurar", "copias.eliminar", "static"}
+ENDPOINTS_SIN_COPIA = {"copias.crear", "copias.restaurar", "copias.eliminar",
+                       "auth.login", "auth.logout", "static"}
 
 
 @app.after_request

@@ -61,6 +61,16 @@
   <a class="nav-item c-config{{ ' activo' if seccion == 'config' }}" href="{{ url_for('configuracion.inicio') }}">
     <i class="bi bi-gear-fill"></i><span>Configuración</span>
   </a>
+
+  <div style="margin-top:auto; padding-top:14px;">
+    <div class="menu-titulo">Sesión</div>
+    <div class="nav-item" style="cursor:default; color:var(--texto-suave);">
+      <i class="bi bi-person-circle"></i><span>{{ session.get('usuario', '') }}</span>
+    </div>
+    <a class="nav-item" href="{{ url_for('auth.logout') }}">
+      <i class="bi bi-box-arrow-right"></i><span>Salir</span>
+    </a>
+  </div>
 </nav>
 
 <main class="contenido c-{{ seccion|default('dashboard') }}">

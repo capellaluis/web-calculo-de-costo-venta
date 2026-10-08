@@ -41,7 +41,7 @@ def test_filtro_solo_aumentos(db_temporal, con):
     crear_producto_con_aumento(con)
     otro = con.execute(
         "INSERT INTO productos (nombre, unidad_compra_id, unidad_uso_id)"
-        " VALUES ('Sal', ?, ?)", (uid(con, "kg"), uid(con, "g"))).lastrowid
+        " VALUES ('SalFina', ?, ?)", (uid(con, "kg"), uid(con, "g"))).lastrowid
     con.execute(
         "INSERT INTO historial_precios (producto_id, fecha, precio_unitario, unidad_id)"
         " VALUES (?, '2026-01-01', 500, ?)", (otro, uid(con, "kg")))
@@ -49,7 +49,7 @@ def test_filtro_solo_aumentos(db_temporal, con):
 
     texto = cliente.get("/precios/?solo_aumentos=1").get_data(as_text=True)
     assert "Azúcar" in texto
-    assert "Sal" not in texto
+    assert "SalFina" not in texto
 
 
 def test_detalle_del_producto(db_temporal, con):

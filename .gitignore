@@ -10,6 +10,7 @@ env/
 
 # Variables de entorno y secretos (¡NUNCA subir a Git!)
 .env
+.secret_key
 
 # Archivos de base de datos local (si usas SQLite)
 *.sqlite3

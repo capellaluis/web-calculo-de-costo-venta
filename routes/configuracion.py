@@ -3,6 +3,7 @@ from decimal import InvalidOperation
 from flask import Blueprint, redirect, render_template, request, url_for
 
 from database.db import obtener_conexion
+from services import correo as correo_servicio
 from services.fabricados import guardar_plantilla, leer_plantilla
 from services.margenes import REDONDEOS, ErrorMargen, calcular_precio, leer_redondeo, guardar_redondeo
 from services.negocio import ErrorNegocio, guardar_logo, guardar_nombre, quitar_logo
@@ -103,22 +104,40 @@ def inicio():
         preview = calcular_precio(ejemplo, plantilla["gastos"],
                                   _margen_elegido_pct(plantilla["margenes"]),
                                   plantilla["delivery"], redondeo)
+        smtp = correo_servicio.leer_config(con)
+        smtp_listo = correo_servicio.configurado(con)
     finally:
         con.close()
 
-    if request.args.get("aviso") == "guardado":
-        aviso = "Valores por defecto guardados."
-    elif request.args.get("aviso") == "negocio":
-        aviso = "Datos del negocio guardados."
-    else:
-        aviso = None
+    avisos = {"guardado": "Valores por defecto guardados.",
+              "negocio": "Datos del negocio guardados.",
+              "correo": "Datos de correo guardados."}
+    aviso = avisos.get(request.args.get("aviso", ""))
     if error is None and request.args.get("error"):
         error = request.args.get("error")
     return render_template("config_margenes.html", seccion="config",
                            gastos=plantilla["gastos"], margenes=plantilla["margenes"],
                            delivery=plantilla["delivery"], redondeo=redondeo,
                            redondeos=REDONDEOS, ejemplo=ejemplo, preview=preview,
+                           smtp=smtp, smtp_listo=smtp_listo,
                            error=error, aviso=aviso)
+
+
+@bp.route("/correo", methods=["POST"])
+def correo():
+    con = obtener_conexion()
+    try:
+        correo_servicio.guardar_config(
+            con,
+            request.form.get("smtp_host", ""),
+            request.form.get("smtp_puerto", ""),
+            request.form.get("smtp_usuario", ""),
+            request.form.get("smtp_password", ""),
+            request.form.get("smtp_remitente", ""),
+        )
+    finally:
+        con.close()
+    return redirect(url_for("configuracion.inicio", aviso="correo"))
 
 
 @bp.route("/negocio", methods=["POST"])

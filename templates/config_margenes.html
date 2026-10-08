@@ -36,6 +36,25 @@
   {% endif %}
 </div>
 
+<div class="tarjeta" style="margin-bottom:18px;">
+  <h2><i class="bi bi-envelope-fill"></i> Correo (para recuperar el acceso)</h2>
+  <p class="subtitulo" style="margin-bottom:10px;">
+    Para Gmail: activá la verificación en dos pasos, creá una <strong>contraseña de aplicación</strong> y poné: host <code>smtp.gmail.com</code>, puerto <code>587</code>, usuario = tu Gmail, contraseña = la de aplicación.
+    {% if smtp_listo %}<span style="color:var(--c); font-weight:600;">✔ Configurado.</span>{% else %}<span style="color:var(--c); font-weight:600;">⚠ Falta completar.</span>{% endif %}
+  </p>
+  <form method="post" action="{{ url_for('configuracion.correo') }}">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:0 18px;">
+      <div class="campo"><label>Servidor (host)</label><input type="text" name="smtp_host" value="{{ smtp.host }}"></div>
+      <div class="campo"><label>Puerto</label><input type="text" name="smtp_puerto" value="{{ smtp.puerto }}"></div>
+      <div class="campo"><label>Usuario (tu Gmail)</label><input type="text" name="smtp_usuario" value="{{ smtp.usuario }}"></div>
+      <div class="campo"><label>Contraseña de aplicación</label><input type="password" name="smtp_password" value="{{ smtp.password }}"></div>
+      <div class="campo"><label>Remitente (opcional)</label><input type="text" name="smtp_remitente" value="{{ smtp.remitente }}"></div>
+    </div>
+    <button class="btn" type="submit"><i class="bi bi-check-lg"></i> Guardar correo</button>
+  </form>
+  <p class="subtitulo" style="margin-top:10px;">Para enviar correos hace falta <strong>internet</strong>. La contraseña de aplicación se guarda en tu base local.</p>
+</div>
+
 <form id="form-porcentajes" method="post" action="{{ url_for('configuracion.inicio') }}">
   <div class="tarjeta" style="margin-bottom:18px;">
     <h2><i class="bi bi-cash-coin"></i> Costo de ejemplo</h2>

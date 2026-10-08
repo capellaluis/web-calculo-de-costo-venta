@@ -43,4 +43,12 @@ def _backups_temporales(tmp_path, monkeypatch):
     yield
 
 
+@pytest.fixture(autouse=True)
+def _sin_login(monkeypatch):
+    """Desactiva el login en las pruebas (salvo las de login)."""
+    import app as appmod
+    monkeypatch.setitem(appmod.app.config, "REQUIERE_LOGIN", False)
+    yield
+
+
 # FIN tests/conftest.py
