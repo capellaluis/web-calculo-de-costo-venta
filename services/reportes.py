@@ -9,6 +9,7 @@ from openpyxl import Workbook
 from services.exportar_excel import a_fecha, agregar_hoja
 from services.fabricados import calcular_fabricado
 from services.recetas import calcular_receta
+from services.ventas import CANALES, ESTADOS, listar_pedidos
 
 TIPOS = {
     "compras": "Compras",
@@ -17,6 +18,7 @@ TIPOS = {
     "historial": "Historial de precios",
     "costos": "Costos de recetas",
     "fabricados": "Productos fabricados",
+    "ventas": "Ventas",
 }
 
 
@@ -32,6 +34,8 @@ def construir_reporte(con, tipo, filtros=None):
         return _costos(con)
     if tipo == "fabricados":
         return _fabricados(con)
+    if tipo == "ventas":
+        return _ventas(con, filtros)
     return _compras(con, filtros)
 
 
@@ -164,6 +168,24 @@ def _fabricados(con):
                             "Costo por unidad"],
             "filas": filas, "formatos": [None, None, None, "money", "money"],
             "resumen": _resumen("Productos", len(filas), "number")}
+
+
+def _ventas(con, filtros):
+    datos = listar_pedidos(con, {
+        "desde": filtros.get("desde", ""),
+        "hasta": filtros.get("hasta", ""),
+        "canal": filtros.get("canal", ""),
+        "estado": filtros.get("estado", ""),
+        "cliente": filtros.get("cliente", ""),
+    })
+    filas = [[d["id"], a_fecha(d["fecha"]), CANALES.get(d["canal"], d["canal"]),
+              d["cliente_nombre"] or "", ESTADOS.get(d["estado"], d["estado"]),
+              d["total"], float(d["ganancia"])] for d in datos]
+    total = sum(d["total"] or 0 for d in datos)
+    return {"titulo": "Ventas",
+            "encabezados": ["ID", "Fecha", "Canal", "Cliente", "Estado", "Total", "Ganancia"],
+            "filas": filas, "formatos": [None, "date", None, None, None, "money", "money"],
+            "resumen": _resumen("Total vendido", total)}
 
 
 def reporte_a_libro(con, tipo, filtros=None):

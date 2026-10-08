@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block titulo %}Ventas{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-receipt"></i> Ventas</h1>
+    <p class="subtitulo">{{ pedidos|length }} en la lista</p>
+  </div>
+  <a class="btn" href="{{ url_for('ventas.nuevo') }}"><i class="bi bi-plus-lg"></i> Nueva venta</a>
+</div>
+
+{% if aviso %}
+<div class="tarjeta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ aviso }}</div>
+{% endif %}
+
+<div class="tarjeta" style="margin-bottom:18px;">
+  <form method="get" style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+    <div><label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Desde</label><input type="date" name="desde" value="{{ filtros.desde }}" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;"></div>
+    <div><label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Hasta</label><input type="date" name="hasta" value="{{ filtros.hasta }}" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;"></div>
+    <div><label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Canal</label>
+      <select name="canal" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+        <option value="">Todos</option>
+        {% for clave, nombre in canales.items() %}<option value="{{ clave }}" {{ 'selected' if clave == filtros.canal }}>{{ nombre }}</option>{% endfor %}
+      </select></div>
+    <div><label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Estado</label>
+      <select name="estado" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+        <option value="">Todos</option>
+        {% for clave, nombre in estados.items() %}<option value="{{ clave }}" {{ 'selected' if clave == filtros.estado }}>{{ nombre }}</option>{% endfor %}
+      </select></div>
+    <div><label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Cliente</label><input type="text" name="cliente" value="{{ filtros.cliente }}" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;"></div>
+    <button class="btn" type="submit"><i class="bi bi-search"></i> Buscar</button>
+    <a class="btn btn-borde" href="{{ url_for('ventas.lista') }}">Limpiar</a>
+  </form>
+</div>
+
+<div class="grid-stats" style="margin-bottom:18px;">
+  <div class="stat-card c-compras">
+    <div class="stat-icono"><i class="bi bi-cash-stack"></i></div>
+    <div><div class="stat-valor">{{ total|moneda }}</div><div class="stat-etiqueta">Total vendido (período)</div></div>
+  </div>
+  <div class="stat-card c-ventas">
+    <div class="stat-icono"><i class="bi bi-graph-up-arrow"></i></div>
+    <div><div class="stat-valor">{{ ganancia|moneda }}</div><div class="stat-etiqueta">Ganancia estimada (período)</div></div>
+  </div>
+</div>
+
+<div class="tarjeta">
+  {% if pedidos %}
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead><tr><th>Fecha</th><th>Canal</th><th>Cliente</th><th>Estado</th><th>Total</th><th>Ganancia</th><th></th></tr></thead>
+      <tbody>
+        {% for p in pedidos %}
+        <tr>
+          <td>{{ p.fecha }}</td>
+          <td>{{ canales.get(p.canal, p.canal) }}</td>
+          <td>{{ p.cliente_nombre or '—' }}</td>
+          <td>{{ estados.get(p.estado, p.estado) }}</td>
+          <td><strong>{{ p.total|moneda }}</strong></td>
+          <td>{{ p.ganancia|moneda }}</td>
+          <td>
+            <div style="display:flex; gap:6px; justify-content:flex-end;">
+              <a class="btn btn-suave" style="padding:6px 12px;" title="Ver" href="{{ url_for('ventas.ver', pedido_id=p.id) }}"><i class="bi bi-eye-fill"></i></a>
+              <a class="btn btn-suave" style="padding:6px 12px;" title="Editar" href="{{ url_for('ventas.editar', pedido_id=p.id) }}"><i class="bi bi-pencil-fill"></i></a>
+              <form method="post" action="{{ url_for('ventas.eliminar', pedido_id=p.id) }}" style="margin:0;" onsubmit="return confirm('¿Eliminar esta venta?');">
+                <button class="btn btn-borde" style="padding:6px 12px;" title="Eliminar" type="submit"><i class="bi bi-trash-fill"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="estado-vacio"><i class="bi bi-receipt"></i>Aún no hay ventas. Cargá la primera con el botón "Nueva venta"</div>
+  {% endif %}
+</div>
+{% endblock %}
+{# FIN ventas_lista.html #}

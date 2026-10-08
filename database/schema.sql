@@ -127,6 +127,31 @@ CREATE TABLE IF NOT EXISTS presentaciones (
     cantidad_unidades       REAL NOT NULL
 );
 
+-- ---------- PEDIDOS / VENTAS ----------
+-- Un pedido (venta) con canal (tienda/delivery) y estado (nuevo/entregado/cancelado).
+CREATE TABLE IF NOT EXISTS pedidos (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha           TEXT NOT NULL,
+    canal           TEXT NOT NULL DEFAULT 'tienda',
+    cliente_nombre  TEXT,
+    forma_pago      TEXT,
+    descuento       REAL NOT NULL DEFAULT 0,
+    estado          TEXT NOT NULL DEFAULT 'nuevo',
+    notas           TEXT,
+    total           REAL NOT NULL DEFAULT 0,
+    creado_en       TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS pedido_items (
+    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+    pedido_id              INTEGER NOT NULL REFERENCES pedidos(id) ON DELETE CASCADE,
+    producto_fabricado_id  INTEGER REFERENCES productos_fabricados(id),
+    presentacion_id        INTEGER REFERENCES presentaciones(id),
+    descripcion            TEXT NOT NULL,
+    cantidad               REAL NOT NULL,
+    precio_unitario        REAL NOT NULL
+);
+
 -- ---------- GASTOS FIJOS ----------
 -- Porcentajes que se SUMAN al costo (gas, agua, luz, alquiler, etc.).
 -- El usuario puede agregar o quitar renglones desde Configuración.

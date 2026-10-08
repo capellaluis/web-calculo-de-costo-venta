@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, request, send_file
 
 from database.db import obtener_conexion
 from services.reportes import TIPOS, construir_reporte, reporte_a_libro
+from services.ventas import CANALES, ESTADOS
 
 bp = Blueprint("reportes", __name__, url_prefix="/reportes")
 
@@ -18,6 +19,9 @@ def _filtros():
         "proveedor": request.args.get("proveedor", "").strip(),
         "producto": request.args.get("producto", "").strip(),
         "categoria": request.args.get("categoria", "").strip(),
+        "canal": request.args.get("canal", "").strip(),
+        "estado": request.args.get("estado", "").strip(),
+        "cliente": request.args.get("cliente", "").strip(),
     }
 
 
@@ -44,7 +48,7 @@ def inicio():
     return render_template("reportes.html", seccion="reportes", tipo=tipo,
                            filtros=filtros, reporte=reporte, tipos=TIPOS,
                            proveedores=proveedores, productos=productos,
-                           categorias=categorias)
+                           categorias=categorias, canales=CANALES, estados=ESTADOS)
 
 
 @bp.route("/exportar")

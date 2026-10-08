@@ -36,7 +36,7 @@
   <a class="nav-item c-precios{{ ' activo' if seccion == 'precios' }}" href="{{ url_for('precios.lista') }}">
     <i class="bi bi-graph-up-arrow"></i><span>Historial de precios</span>
   </a>
-  <a class="nav-item c-ventas{{ ' activo' if seccion == 'ventas' }}" href="#">
+  <a class="nav-item c-ventas{{ ' activo' if seccion == 'ventas' }}" href="{{ url_for('ventas.lista') }}">
     <i class="bi bi-receipt"></i><span>Ventas</span>
   </a>
 

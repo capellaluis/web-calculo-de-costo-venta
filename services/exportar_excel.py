@@ -12,6 +12,7 @@ from openpyxl.utils import get_column_letter
 
 from services.fabricados import calcular_fabricado
 from services.recetas import calcular_receta
+from services.ventas import CANALES, ESTADOS, listar_pedidos
 
 COLOR_ENCABEZADO = "4F46E5"
 
@@ -207,6 +208,32 @@ def _hoja_fabricados(con, wb):
                   precios, [None, None, None, "money", "money", "money", "money"])
 
 
+def _hoja_ventas(con, wb):
+    filas = []
+    for pedido in listar_pedidos(con):
+        filas.append([pedido["id"], a_fecha(pedido["fecha"]),
+                      CANALES.get(pedido["canal"], pedido["canal"]),
+                      pedido["cliente_nombre"] or "", pedido["forma_pago"] or "",
+                      ESTADOS.get(pedido["estado"], pedido["estado"]),
+                      pedido["descuento"] or 0, pedido["total"], float(pedido["ganancia"])])
+    _agregar_hoja(wb, "Ventas",
+                  ["ID", "Fecha", "Canal", "Cliente", "Forma de pago", "Estado",
+                   "Descuento", "Total", "Ganancia"],
+                  filas, [None, "date", None, None, None, None, "money", "money", "money"])
+
+    detalle = []
+    for fila in con.execute(
+            "SELECT pi.*, pe.fecha FROM pedido_items pi"
+            " JOIN pedidos pe ON pe.id = pi.pedido_id"
+            " ORDER BY pe.fecha DESC, pi.pedido_id, pi.id"):
+        detalle.append([fila["pedido_id"], a_fecha(fila["fecha"]), fila["descripcion"],
+                        fila["cantidad"], fila["precio_unitario"],
+                        fila["cantidad"] * fila["precio_unitario"]])
+    _agregar_hoja(wb, "Detalle Ventas",
+                  ["Pedido", "Fecha", "Producto", "Cantidad", "Precio unitario", "Subtotal"],
+                  detalle, [None, "date", None, None, "money", "money"])
+
+
 def construir_libro(con):
     wb = Workbook()
     wb.remove(wb.active)
@@ -217,6 +244,7 @@ def construir_libro(con):
     _hoja_historial(con, wb)
     _hoja_recetas(con, wb)
     _hoja_fabricados(con, wb)
+    _hoja_ventas(con, wb)
     return wb
 
 

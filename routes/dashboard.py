@@ -3,6 +3,7 @@ from flask import Blueprint, render_template
 from database.db import obtener_conexion
 from services.costos import costo_total_recetas
 from services.precios import productos_con_aumento
+from services.ventas import resumen_periodo
 
 bp = Blueprint("dashboard", __name__)
 
@@ -58,6 +59,9 @@ def inicio():
         ).fetchall()
 
         aumentos = productos_con_aumento(con, limite=5)
+
+        mes = con.execute("SELECT strftime('%Y-%m', 'now', 'localtime')").fetchone()[0]
+        ventas_mes = resumen_periodo(con, desde=mes + "-01", hasta=mes + "-31")
 # (aqui termina la parte 2a)
     finally:
         con.close()
@@ -78,7 +82,8 @@ def inicio():
     }
 
     return render_template("dashboard.html", seccion="dashboard",
-                           stats=stats, graficos=graficos, aumentos=aumentos)
+                           stats=stats, graficos=graficos, aumentos=aumentos,
+                           ventas_mes=ventas_mes)
 
 
 # FIN dashboard.py

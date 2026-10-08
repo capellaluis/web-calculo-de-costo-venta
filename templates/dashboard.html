@@ -54,6 +54,20 @@
       <div class="stat-etiqueta">Costo de las recetas</div>
     </div>
   </div>
+  <div class="stat-card c-ventas">
+    <div class="stat-icono"><i class="bi bi-receipt"></i></div>
+    <div>
+      <div class="stat-valor">{{ ventas_mes.total|moneda }}</div>
+      <div class="stat-etiqueta">Ventas del mes</div>
+    </div>
+  </div>
+  <div class="stat-card c-ventas">
+    <div class="stat-icono"><i class="bi bi-graph-up-arrow"></i></div>
+    <div>
+      <div class="stat-valor">{{ ventas_mes.ganancia|moneda }}</div>
+      <div class="stat-etiqueta">Ganancia del mes</div>
+    </div>
+  </div>
 </div>
 {# fin parte 1 #}
 

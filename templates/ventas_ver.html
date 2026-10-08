@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block titulo %}Venta {{ calculo.pedido.id }}{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-receipt"></i> Venta del {{ calculo.pedido.fecha }}</h1>
+    <p class="subtitulo">{{ canales.get(calculo.pedido.canal, calculo.pedido.canal) }}{% if calculo.pedido.cliente_nombre %} · {{ calculo.pedido.cliente_nombre }}{% endif %}</p>
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn" href="{{ url_for('ventas.editar', pedido_id=calculo.pedido.id) }}"><i class="bi bi-pencil-fill"></i> Editar</a>
+    <a class="btn btn-borde" href="{{ url_for('ventas.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
+    <form method="post" action="{{ url_for('ventas.eliminar', pedido_id=calculo.pedido.id) }}" style="margin:0;" onsubmit="return confirm('¿Eliminar esta venta?');">
+      <button class="btn btn-borde" type="submit"><i class="bi bi-trash-fill"></i> Eliminar</button>
+    </form>
+  </div>
+</div>
+
+{% if aviso %}
+<div class="tarjeta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ aviso }}</div>
+{% endif %}
+
+<div class="tarjeta" style="margin-bottom:18px;">
+  <h2><i class="bi bi-info-circle-fill"></i> Datos</h2>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:14px;">
+    <div><div class="stat-etiqueta">Fecha</div><div>{{ calculo.pedido.fecha }}</div></div>
+    <div><div class="stat-etiqueta">Canal</div><div>{{ canales.get(calculo.pedido.canal) }}</div></div>
+    <div><div class="stat-etiqueta">Cliente</div><div>{{ calculo.pedido.cliente_nombre or '—' }}</div></div>
+    <div><div class="stat-etiqueta">Forma de pago</div><div>{{ calculo.pedido.forma_pago or '—' }}</div></div>
+    <div><div class="stat-etiqueta">Descuento</div><div>{{ calculo.pedido.descuento|moneda if calculo.pedido.descuento else '—' }}</div></div>
+    <div><div class="stat-etiqueta">Estado</div><div>{{ estados.get(calculo.pedido.estado) }}</div></div>
+  </div>
+  <form method="post" action="{{ url_for('ventas.estado', pedido_id=calculo.pedido.id) }}" style="display:flex; gap:10px; align-items:end;">
+    <div class="campo" style="max-width:220px; margin:0;">
+      <label>Cambiar estado</label>
+      <select name="estado">
+        {% for clave, nombre in estados.items() %}<option value="{{ clave }}" {{ 'selected' if calculo.pedido.estado == clave }}>{{ nombre }}</option>{% endfor %}
+      </select>
+    </div>
+    <button class="btn btn-suave" type="submit"><i class="bi bi-arrow-repeat"></i> Actualizar estado</button>
+  </form>
+</div>
+
+<div class="tarjeta" style="margin-bottom:18px;">
+  <h2><i class="bi bi-list-ul"></i> Productos</h2>
+  <div class="tabla-caja">
+    <table class="tabla">
+      <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th><th>Costo (actual)</th><th>Ganancia</th></tr></thead>
+      <tbody>
+        {% for i in calculo['items'] %}
+        <tr>
+          <td>{{ i.descripcion }}</td>
+          <td>{{ i.cantidad }}</td>
+          <td>{{ i.precio_unitario|moneda }}</td>
+          <td>{{ i.subtotal|moneda }}</td>
+          <td>{{ i.costo_unitario|moneda }}</td>
+          <td>{{ i.ganancia|moneda }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="grid-stats">
+  <div class="stat-card c-compras">
+    <div class="stat-icono"><i class="bi bi-cash-stack"></i></div>
+    <div><div class="stat-valor">{{ calculo.total|moneda }}</div><div class="stat-etiqueta">Total</div></div>
+  </div>
+  <div class="stat-card c-ventas">
+    <div class="stat-icono"><i class="bi bi-graph-up-arrow"></i></div>
+    <div><div class="stat-valor">{{ calculo.ganancia|moneda }}</div><div class="stat-etiqueta">Ganancia estimada</div></div>
+  </div>
+</div>
+{% endblock %}
+{# FIN ventas_ver.html #}

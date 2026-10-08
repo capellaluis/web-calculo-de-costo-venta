@@ -20,7 +20,7 @@
       </select>
     </div>
 
-    {% if tipo in ['compras', 'historial'] %}
+    {% if tipo in ['compras', 'historial', 'ventas'] %}
     <div>
       <label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Desde</label>
       <input type="date" name="desde" value="{{ filtros.desde }}" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
@@ -28,6 +28,27 @@
     <div>
       <label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Hasta</label>
       <input type="date" name="hasta" value="{{ filtros.hasta }}" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+    </div>
+    {% endif %}
+
+    {% if tipo == 'ventas' %}
+    <div>
+      <label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Canal</label>
+      <select name="canal" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+        <option value="">Todos</option>
+        {% for clave, nombre in canales.items() %}<option value="{{ clave }}" {{ 'selected' if clave == filtros.canal }}>{{ nombre }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Estado</label>
+      <select name="estado" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
+        <option value="">Todos</option>
+        {% for clave, nombre in estados.items() %}<option value="{{ clave }}" {{ 'selected' if clave == filtros.estado }}>{{ nombre }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="stat-etiqueta" style="display:block; margin-bottom:4px;">Cliente</label>
+      <input type="text" name="cliente" value="{{ filtros.cliente }}" style="padding:10px 12px; border:1px solid var(--borde); border-radius:12px; font:inherit;">
     </div>
     {% endif %}
 
@@ -62,7 +83,7 @@
     {% endif %}
 
     <button class="btn" type="submit"><i class="bi bi-search"></i> Ver</button>
-    <a class="btn btn-borde" href="{{ url_for('reportes.exportar', tipo=tipo, desde=filtros.desde, hasta=filtros.hasta, proveedor=filtros.proveedor, producto=filtros.producto, categoria=filtros.categoria) }}"><i class="bi bi-file-earmark-excel-fill"></i> Exportar</a>
+    <a class="btn btn-borde" href="{{ url_for('reportes.exportar', tipo=tipo, desde=filtros.desde, hasta=filtros.hasta, proveedor=filtros.proveedor, producto=filtros.producto, categoria=filtros.categoria, canal=filtros.canal, estado=filtros.estado, cliente=filtros.cliente) }}"><i class="bi bi-file-earmark-excel-fill"></i> Exportar</a>
   </form>
 </div>
 

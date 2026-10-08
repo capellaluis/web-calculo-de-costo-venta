@@ -13,6 +13,7 @@ from routes.fabricados import bp as fabricados_bp
 from routes.excel import bp as excel_bp
 from routes.reportes import bp as reportes_bp
 from routes.copias import bp as copias_bp
+from routes.ventas import bp as ventas_bp
 from routes.auth import bp as auth_bp
 from services.seguridad import obtener_secret_key
 
@@ -31,6 +32,7 @@ app.register_blueprint(fabricados_bp)
 app.register_blueprint(excel_bp)
 app.register_blueprint(reportes_bp)
 app.register_blueprint(copias_bp)
+app.register_blueprint(ventas_bp)
 app.register_blueprint(auth_bp)
 
 

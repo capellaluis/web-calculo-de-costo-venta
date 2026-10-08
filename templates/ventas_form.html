@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block titulo %}{{ 'Editar venta' if editando else 'Nueva venta' }}{% endblock %}
+{% block contenido %}
+
+<div class="encabezado">
+  <div>
+    <h1><i class="bi bi-receipt"></i> {{ 'Editar venta' if editando else 'Nueva venta' }}</h1>
+    <p class="subtitulo">Elegí el canal y los productos. El precio se completa solo según el canal (y lo podés editar).</p>
+  </div>
+  <a class="btn btn-borde" href="{{ url_for('ventas.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+
+{% if error %}
+<div class="tarjeta c-alerta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ error }}</div>
+{% endif %}
+
+<div class="tarjeta">
+  <form method="post" action="{{ url_for('ventas.editar', pedido_id=pedido_id) if editando else url_for('ventas.nuevo') }}">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:0 18px;">
+      <div class="campo"><label>Fecha *</label><input type="date" name="fecha" value="{{ datos.fecha }}" required></div>
+      <div class="campo"><label>Canal *</label>
+        <select name="canal" id="sel-canal">
+          {% for clave, nombre in canales.items() %}
+          <option value="{{ clave }}" {{ 'selected' if datos.canal == clave }}>{{ nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="campo"><label>Cliente (opcional)</label><input type="text" name="cliente_nombre" value="{{ datos.cliente_nombre }}"></div>
+      <div class="campo"><label>Forma de pago</label>
+        <select name="forma_pago">
+          <option value="">—</option>
+          {% for fp in formas_pago %}<option value="{{ fp }}" {{ 'selected' if datos.forma_pago == fp }}>{{ fp }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="campo"><label>Descuento</label><input type="text" inputmode="decimal" name="descuento" value="{{ datos.descuento }}"></div>
+      <div class="campo"><label>Estado</label>
+        <select name="estado">
+          {% for clave, nombre in estados.items() %}
+          <option value="{{ clave }}" {{ 'selected' if datos.estado == clave }}>{{ nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <h2 style="margin-top:14px;"><i class="bi bi-list-ul"></i> Productos</h2>
+    <div class="tabla-caja" style="margin-bottom:12px;">
+      <table class="tabla">
+        <thead>
+          <tr><th>Producto / Presentación</th><th style="width:110px;">Cantidad</th><th style="width:140px;">Precio unitario</th><th style="width:130px;">Subtotal</th><th></th></tr>
+        </thead>
+        <tbody id="cuerpo-items"></tbody>
+      </table>
+    </div>
+    <button type="button" id="agregar-item" class="btn btn-suave"><i class="bi bi-plus-lg"></i> Agregar producto</button>
+
+    <div style="display:flex; justify-content:flex-end; align-items:center; gap:12px; margin-top:18px;">
+      <span class="stat-etiqueta">Total</span>
+      <span class="stat-valor" id="total-venta">$0</span>
+    </div>
+
+    <div class="campo" style="margin-top:12px;"><label>Notas</label><textarea name="notas" rows="2">{{ datos.notas }}</textarea></div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:16px;">
+      <button class="btn" type="submit"><i class="bi bi-check-lg"></i> Guardar</button>
+      <a class="btn btn-borde" href="{{ url_for('ventas.lista') }}">Cancelar</a>
+    </div>
+  </form>
+</div>
+
+<template id="plantilla-item">
+  <tr>
+    <td><select name="presentacion_id" class="pres-sel" required></select></td>
+    <td><input type="text" inputmode="decimal" name="cantidad" class="inp-cantidad" value="1"></td>
+    <td><input type="text" inputmode="decimal" name="precio_unitario" class="inp-precio"></td>
+    <td class="celda-subtotal">—</td>
+    <td><button type="button" class="btn btn-borde quitar-item" title="Quitar" style="padding:6px 12px;"><i class="bi bi-trash-fill"></i></button></td>
+  </tr>
+</template>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var PRESENTACIONES = {{ presentaciones|tojson }};
+  var PRES_POR_ID = {};
+  PRESENTACIONES.forEach(function (p) { PRES_POR_ID[p.id] = p; });
+
+  function formatear(n) { return '$' + n.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
+  function aNumero(t) {
+    t = String(t || '').replace(/\s|\$/g, '');
+    if (t.indexOf(',') >= 0) { t = t.replace(/\./g, '').replace(',', '.'); }
+    var n = parseFloat(t); return isNaN(n) ? 0 : n;
+  }
+  function opciones(sel) {
+    var html = '<option value="">Elegir producto</option>';
+    PRESENTACIONES.forEach(function (p) {
+      html += '<option value="' + p.id + '"' + (String(p.id) === String(sel) ? ' selected' : '') +
+              '>' + p.fabricado + ' — ' + p.nombre + '</option>';
+    });
+    return html;
+  }
+  function precioDe(presentacionId, canal) {
+    var p = PRES_POR_ID[presentacionId];
+    if (!p) { return ''; }
+    var precio = (canal === 'delivery') ? p.delivery : p.tienda;
+    return (precio === null || precio === undefined) ? '' : String(precio);
+  }
+  function actualizar() {
+    var canal = document.getElementById('sel-canal').value;
+    var total = 0;
+    document.querySelectorAll('#cuerpo-items tr').forEach(function (fila) {
+      var cant = aNumero(fila.querySelector('.inp-cantidad').value);
+      var precio = aNumero(fila.querySelector('.inp-precio').value);
+      var subtotal = cant * precio;
+      fila.querySelector('.celda-subtotal').textContent = subtotal > 0 ? formatear(subtotal) : '—';
+      total += subtotal;
+    });
+    document.getElementById('total-venta').textContent = formatear(total);
+  }
+  function agregarFila(pres, cant, precio) {
+    var clon = document.getElementById('plantilla-item').content.cloneNode(true);
+    var fila = clon.querySelector('tr');
+    var sel = fila.querySelector('.pres-sel');
+    sel.innerHTML = opciones(pres);
+    fila.querySelector('.inp-cantidad').value = cant || '1';
+    var canal = document.getElementById('sel-canal').value;
+    fila.querySelector('.inp-precio').value = (precio !== undefined && precio !== '') ? precio : precioDe(pres, canal);
+    document.getElementById('cuerpo-items').appendChild(fila);
+    actualizar();
+  }
+  document.getElementById('agregar-item').addEventListener('click', function () { agregarFila(); });
+  document.getElementById('cuerpo-items').addEventListener('input', actualizar);
+  document.getElementById('cuerpo-items').addEventListener('change', function (evento) {
+    if (evento.target.classList.contains('pres-sel')) {
+      var fila = evento.target.closest('tr');
+      fila.querySelector('.inp-precio').value = precioDe(evento.target.value, document.getElementById('sel-canal').value);
+    }
+    actualizar();
+  });
+  document.getElementById('cuerpo-items').addEventListener('click', function (evento) {
+    var boton = evento.target.closest('.quitar-item');
+    if (boton) { boton.closest('tr').remove(); if (!document.querySelector('#cuerpo-items tr')) { agregarFila(); } actualizar(); }
+  });
+  document.getElementById('sel-canal').addEventListener('change', function () {
+    document.querySelectorAll('#cuerpo-items tr').forEach(function (fila) {
+      var sel = fila.querySelector('.pres-sel');
+      if (sel.value) { fila.querySelector('.inp-precio').value = precioDe(sel.value, this.value); }
+    }, this);
+    actualizar();
+  });
+
+  var ITEMS = {{ items|tojson }};
+  if (ITEMS.length) { ITEMS.forEach(function (i) { agregarFila(i.presentacion_id, i.cantidad, i.precio_unitario); }); }
+  else { agregarFila(); }
+  actualizar();
+</script>
+{% endblock %}
+{# FIN ventas_form.html #}

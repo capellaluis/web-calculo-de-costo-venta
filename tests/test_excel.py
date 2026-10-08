@@ -7,7 +7,8 @@ import routes.excel as excelmod
 from services.exportar_excel import construir_libro
 
 HOJAS = ["Proveedores", "Productos", "Compras", "Detalle Compras", "Historial Precios",
-         "Recetas", "Ingredientes", "Productos Fabricados", "Costos y Precios"]
+         "Recetas", "Ingredientes", "Productos Fabricados", "Costos y Precios",
+         "Ventas", "Detalle Ventas"]
 
 
 def uid(con, abreviatura):
