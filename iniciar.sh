@@ -10,4 +10,4 @@ if [ ! -x venv/bin/python ] || [ ! -f database/negocio.db ]; then
 fi
 
 echo "Iniciando MI NEGOCIO... (para apagar: Ctrl + C)"
-exec venv/bin/python app.py
+exec venv/bin/python servidor.py

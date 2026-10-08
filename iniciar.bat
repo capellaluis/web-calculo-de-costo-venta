@@ -18,5 +18,5 @@ if errorlevel 1 (
 
 :iniciar
 echo Iniciando MI NEGOCIO... para apagar: Ctrl + C
-venv\Scripts\python.exe app.py
+venv\Scripts\python.exe servidor.py
 pause
