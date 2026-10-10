@@ -16,6 +16,7 @@
 
 <div class="tarjeta">
   <form method="post" action="{{ url_for('ventas.editar', pedido_id=pedido_id) if editando else url_for('ventas.nuevo') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:0 18px;">
       <div class="campo"><label>Fecha *</label><input type="date" name="fecha" value="{{ datos.fecha }}" required></div>
       <div class="campo"><label>Canal *</label>

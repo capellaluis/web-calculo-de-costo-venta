@@ -45,6 +45,7 @@
               <a class="btn btn-suave" style="padding:6px 12px;" title="Ver" href="{{ url_for('proveedores.ver', proveedor_id=p.id) }}"><i class="bi bi-eye-fill"></i></a>
               <a class="btn btn-suave" style="padding:6px 12px;" title="Editar" href="{{ url_for('proveedores.editar', proveedor_id=p.id) }}"><i class="bi bi-pencil-fill"></i></a>
               <form method="post" action="{{ url_for('proveedores.eliminar', proveedor_id=p.id) }}" style="margin:0;" onsubmit="return confirm('¿Eliminar este proveedor?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="btn btn-borde" style="padding:6px 12px;" title="Eliminar" type="submit"><i class="bi bi-trash-fill"></i></button>
               </form>
             </div>

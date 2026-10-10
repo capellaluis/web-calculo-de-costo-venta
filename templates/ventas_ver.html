@@ -11,6 +11,7 @@
     <a class="btn" href="{{ url_for('ventas.editar', pedido_id=calculo.pedido.id) }}"><i class="bi bi-pencil-fill"></i> Editar</a>
     <a class="btn btn-borde" href="{{ url_for('ventas.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
     <form method="post" action="{{ url_for('ventas.eliminar', pedido_id=calculo.pedido.id) }}" style="margin:0;" onsubmit="return confirm('¿Eliminar esta venta?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button class="btn btn-borde" type="submit"><i class="bi bi-trash-fill"></i> Eliminar</button>
     </form>
   </div>
@@ -31,6 +32,7 @@
     <div><div class="stat-etiqueta">Estado</div><div>{{ estados.get(calculo.pedido.estado) }}</div></div>
   </div>
   <form method="post" action="{{ url_for('ventas.estado', pedido_id=calculo.pedido.id) }}" style="display:flex; gap:10px; align-items:end;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="campo" style="max-width:220px; margin:0;">
       <label>Cambiar estado</label>
       <select name="estado">

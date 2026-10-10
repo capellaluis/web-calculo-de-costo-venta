@@ -25,6 +25,7 @@
     <p class="subtitulo" style="margin-bottom:12px;">Te enviamos un <strong>código</strong> a tu correo
       {% if email %}({{ email }}){% endif %} para que puedas ver tu usuario y poner una clave nueva.</p>
     <form method="post" action="{{ url_for('auth.recuperar') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button class="btn" type="submit" style="width:100%; justify-content:center;"><i class="bi bi-envelope-fill"></i> Enviar código a mi correo</button>
     </form>
 
@@ -32,6 +33,7 @@
     <p class="subtitulo" style="margin-bottom:12px;">Te enviamos un código a <strong>{{ email }}</strong>.
       Escribilo acá y elegí tu nueva clave (vence en 15 minutos).</p>
     <form method="post" action="{{ url_for('auth.recuperar_cambiar') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="campo"><label>Código</label><input type="text" name="codigo" inputmode="numeric" required autofocus></div>
       <div class="campo"><label>Nueva contraseña</label><input type="password" name="password" required></div>
       <div class="campo"><label>Repetir contraseña</label><input type="password" name="password2" required></div>

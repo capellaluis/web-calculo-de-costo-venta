@@ -19,6 +19,7 @@
 <div class="tarjeta" style="margin-bottom:18px;">
   <h2><i class="bi bi-shop"></i> Datos del negocio</h2>
   <form method="post" action="{{ url_for('configuracion.negocio') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div style="display:flex; gap:18px; flex-wrap:wrap; align-items:end;">
       <div class="campo" style="min-width:240px;"><label>Nombre del negocio</label><input type="text" name="nombre_negocio" value="{{ negocio.nombre }}"></div>
       <div class="campo" style="min-width:240px;"><label>Logo (PNG, JPG, GIF, WEBP o SVG · máx 2 MB)</label><input type="file" name="logo" accept="image/*"></div>
@@ -29,6 +30,7 @@
   <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
     <img src="{{ url_for('static', filename='uploads/' ~ negocio.logo) }}" alt="Logo" style="height:56px; border-radius:12px;">
     <form method="post" action="{{ url_for('configuracion.negocio') }}" style="margin:0;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="hidden" name="accion" value="quitar_logo">
       <button class="btn btn-borde" type="submit"><i class="bi bi-trash-fill"></i> Quitar logo</button>
     </form>
@@ -43,6 +45,7 @@
     {% if smtp_listo %}<span style="color:var(--c); font-weight:600;">✔ Configurado.</span>{% else %}<span style="color:var(--c); font-weight:600;">⚠ Falta completar.</span>{% endif %}
   </p>
   <form method="post" action="{{ url_for('configuracion.correo') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:0 18px;">
       <div class="campo"><label>Servidor (host)</label><input type="text" name="smtp_host" value="{{ smtp.host }}"></div>
       <div class="campo"><label>Puerto</label><input type="text" name="smtp_puerto" value="{{ smtp.puerto }}"></div>
@@ -56,6 +59,7 @@
 </div>
 
 <form id="form-porcentajes" method="post" action="{{ url_for('configuracion.inicio') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="tarjeta" style="margin-bottom:18px;">
     <h2><i class="bi bi-cash-coin"></i> Costo de ejemplo</h2>
     <p class="subtitulo" style="margin-bottom:10px;">Escribí un costo para ver el resultado. No se guarda.</p>

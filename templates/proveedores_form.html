@@ -16,6 +16,7 @@
 
 <div class="tarjeta">
   <form method="post" action="{{ url_for('proveedores.editar', proveedor_id=proveedor_id) if editando else url_for('proveedores.nuevo') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:0 18px;">
       <div class="campo"><label>Nombre *</label><input type="text" name="nombre" value="{{ datos.nombre }}" required></div>
       <div class="campo"><label>Razón social</label><input type="text" name="razon_social" value="{{ datos.razon_social }}"></div>
