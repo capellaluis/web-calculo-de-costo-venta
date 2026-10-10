@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 
@@ -106,8 +107,17 @@ if __name__ == "__main__":
     # Aplica migraciones pendientes (hace copia de seguridad antes de tocar la base)
     from database.migrar import migrar
     migrar()
-    # host 0.0.0.0 permite entrar desde otros dispositivos de tu red Wi-Fi
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # Configurable por .env; defaults seguros: debug=False, host=127.0.0.1
+    # En desarrollo local, agregar a .env: APP_DEBUG=1, APP_HOST=0.0.0.0
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass
+    host = os.environ.get("APP_HOST", "127.0.0.1")
+    puerto = int(os.environ.get("APP_PORT", "5000"))
+    depuracion = os.environ.get("APP_DEBUG", "0") == "1"
+    app.run(host=host, port=puerto, debug=depuracion)
 
 
 # FIN app.py
