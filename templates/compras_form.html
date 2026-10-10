@@ -16,6 +16,7 @@
 
 <div class="tarjeta">
   <form method="post" action="{{ url_for('compras.editar', compra_id=compra_id) if editando else url_for('compras.nueva') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:0 18px; margin-bottom:8px;">
       <div class="campo"><label>Proveedor *</label>
         <select name="proveedor_id" required>

@@ -18,6 +18,7 @@
   <h2><i class="bi bi-plus-circle"></i> Crear una copia</h2>
   <p class="subtitulo" style="margin-bottom:10px;">Se guarda una copia de <strong>toda tu base</strong> con fecha y hora. Se conservan las últimas {{ limite }} copias automáticas.</p>
   <form method="post" action="{{ url_for('copias.crear') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button class="btn" type="submit"><i class="bi bi-hdd-fill"></i> Crear copia ahora</button>
   </form>
   <p class="subtitulo" style="margin-top:12px;"><i class="bi bi-exclamation-triangle-fill"></i> Guardá una copia <strong>fuera</strong> de la computadora/Raspberry (pendrive, nube): así no la perdés si falla el disco.</p>
@@ -39,10 +40,12 @@
             <div style="display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap;">
               <a class="btn btn-suave" style="padding:6px 12px;" href="{{ url_for('copias.descargar', nombre=c.nombre) }}"><i class="bi bi-download"></i> Descargar</a>
               <form method="post" action="{{ url_for('copias.restaurar') }}" style="margin:0;" onsubmit="return confirm('¿Restaurar esta copia? Se reemplazan los datos actuales (se guarda una copia de seguridad antes).');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="nombre" value="{{ c.nombre }}">
                 <button class="btn btn-borde" style="padding:6px 12px;" type="submit"><i class="bi bi-arrow-counterclockwise"></i> Restaurar</button>
               </form>
               <form method="post" action="{{ url_for('copias.eliminar') }}" style="margin:0;" onsubmit="return confirm('¿Eliminar esta copia?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="nombre" value="{{ c.nombre }}">
                 <button class="btn btn-borde" style="padding:6px 12px;" type="submit"><i class="bi bi-trash-fill"></i></button>
               </form>

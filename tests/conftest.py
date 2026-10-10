@@ -51,4 +51,12 @@ def _sin_login(monkeypatch):
     yield
 
 
+@pytest.fixture(autouse=True)
+def _sin_csrf(monkeypatch):
+    """Desactiva la protección CSRF en las pruebas."""
+    import app as appmod
+    monkeypatch.setitem(appmod.app.config, "WTF_CSRF_ENABLED", False)
+    yield
+
+
 # FIN tests/conftest.py

@@ -16,6 +16,7 @@
 
 <div class="tarjeta">
   <form method="post" action="{{ url_for('productos.editar', producto_id=producto_id) if editando else url_for('productos.nuevo') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:0 18px;">
       <div class="campo"><label>Nombre *</label><input type="text" name="nombre" value="{{ datos.nombre }}" required></div>
       <div class="campo"><label>Categoría</label><input type="text" name="categoria" value="{{ datos.categoria }}" list="lista_categorias" placeholder="Ejemplo: Lácteos"><datalist id="lista_categorias">{% for c in categorias %}<option value="{{ c.nombre }}">{% endfor %}</datalist></div>

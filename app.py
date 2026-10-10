@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_wtf.csrf import CSRFProtect
 
 from database.db import obtener_conexion
 from routes.dashboard import bp as dashboard_bp
@@ -20,6 +21,7 @@ from services.seguridad import obtener_secret_key
 app = Flask(__name__)
 app.secret_key = obtener_secret_key()
 app.config.setdefault("REQUIERE_LOGIN", True)
+CSRFProtect(app)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(proveedores_bp)
 app.register_blueprint(productos_bp)

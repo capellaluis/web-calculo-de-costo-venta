@@ -3,6 +3,7 @@
 # (los scripts setup.sh / setup.bat ya lo hacen por ti)
 
 Flask>=3.0,<4          # servidor web y plantillas (incluye Jinja2)
+Flask-WTF>=1.2,<2      # protección CSRF
 openpyxl>=3.1,<4       # exportacion a Excel
 python-dotenv>=1.0,<2  # lee el archivo .env
 waitress>=3.0,<4       # servidor para uso diario (opcional en desarrollo)

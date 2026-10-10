@@ -9,6 +9,7 @@
   </p>
 
   <form method="post" action="{{ form_action|default(url_for('configuracion.inicio')) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {% if destino %}<input type="hidden" name="destino" value="{{ destino }}">{% endif %}
 
     <div class="campo" style="max-width:220px; margin-bottom:6px;">

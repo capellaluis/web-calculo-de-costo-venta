@@ -11,6 +11,7 @@
     <a class="btn" href="{{ url_for('fabricados.editar', fabricado_id=calculo.id) }}"><i class="bi bi-pencil-fill"></i> Editar</a>
     <a class="btn btn-borde" href="{{ url_for('fabricados.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
     <form method="post" action="{{ url_for('fabricados.eliminar', fabricado_id=calculo.id) }}" style="margin:0;" onsubmit="return confirm('¿Eliminar este producto fabricado?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button class="btn btn-borde" type="submit"><i class="bi bi-trash-fill"></i> Eliminar</button>
     </form>
   </div>
