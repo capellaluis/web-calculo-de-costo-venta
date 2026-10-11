@@ -1,6 +1,7 @@
 from flask import Blueprint, redirect, render_template, request, session, url_for
 
 from database.db import obtener_conexion
+from services.rate_limit import limiter
 from services import correo
 from services.negocio import leer_negocio
 from services.usuarios import (
@@ -23,6 +24,7 @@ bp = Blueprint("auth", __name__)
 
 
 @bp.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute", methods=["POST"])
 def login():
     from pathlib import Path
     con = obtener_conexion()
@@ -86,6 +88,7 @@ def _ocultar_email(email):
 
 
 @bp.route("/recuperar", methods=["GET", "POST"])
+@limiter.limit("3 per minute", methods=["POST"])
 def recuperar():
     con = obtener_conexion()
     try:
@@ -125,6 +128,7 @@ def recuperar():
 
 
 @bp.route("/recuperar/cambiar", methods=["POST"])
+@limiter.limit("5 per minute")
 def recuperar_cambiar():
     con = obtener_conexion()
     try:

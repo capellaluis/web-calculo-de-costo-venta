@@ -59,4 +59,14 @@ def _sin_csrf(monkeypatch):
     yield
 
 
+@pytest.fixture(autouse=True)
+def _sin_rate_limiting():
+    """Desactiva el rate limiting en las pruebas."""
+    from services.rate_limit import limiter
+    original = limiter.enabled
+    limiter.enabled = False
+    yield
+    limiter.enabled = original
+
+
 # FIN tests/conftest.py

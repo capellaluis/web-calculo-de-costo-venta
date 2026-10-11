@@ -3,6 +3,7 @@ from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 
 from database.db import obtener_conexion
+from services.rate_limit import limiter
 from routes.dashboard import bp as dashboard_bp
 from routes.proveedores import bp as proveedores_bp
 from routes.productos import bp as productos_bp
@@ -23,6 +24,7 @@ app = Flask(__name__)
 app.secret_key = obtener_secret_key()
 app.config.setdefault("REQUIERE_LOGIN", True)
 CSRFProtect(app)
+limiter.init_app(app)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(proveedores_bp)
 app.register_blueprint(productos_bp)
