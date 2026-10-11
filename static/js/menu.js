@@ -18,6 +18,19 @@
     menu.addEventListener('click', function (e) {
       if (e.target.closest('a')) { abrir(false); }
     });
+    // Acordeón exclusivo: al abrir un grupo se cierran los demás (excepto Sesión).
+    var grupos = Array.prototype.slice.call(menu.querySelectorAll('.menu-grupo:not(.menu-sesion .menu-grupo)'));
+    grupos.forEach(function (g) {
+      g.addEventListener('toggle', function () {
+        if (!g.open) { return; }
+        grupos.forEach(function (o) { if (o !== g) { o.open = false; } });
+      });
+    });
+    // Estado inicial: solo el grupo de la sección activa (o el primero).
+    var activo = menu.querySelector('.menu-grupo .nav-item.activo');
+    var inicial = (activo && activo.closest('.menu-grupo')) || grupos[0];
+    grupos.forEach(function (g) { g.open = (g === inicial); });
+
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { abrir(false); } });
     window.addEventListener('resize', function () { if (window.innerWidth > 900) { abrir(false); } });
   });
