@@ -1,3 +1,13 @@
-# Dependencias SOLO para desarrollo y pruebas (no van a requirements.txt)
-# Se instalan con:  pip install -r requirements-dev.txt
-pytest>=8,<9
+# Dependencias SOLO para desarrollo y tests
+# Instalar con: pip install -r requirements-dev.txt
+# (incluye todo de requirements.txt + herramientas de desarrollo)
+
+-r requirements.txt
+
+# Testing
+pytest==9.1.1
+pytest-cov==5.0.0
+
+# Code quality (opcional, para después)
+# ruff==0.8.0
+# mypy==1.12.0

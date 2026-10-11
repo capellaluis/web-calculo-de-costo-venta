@@ -21,20 +21,27 @@ para el uso diario.
 
 **REGLA OBLIGATORIA**: No hacer `git commit` NUNCA sin que el usuario lo pida explícitamente.
 
-Flujo correcto:
-1. Implementar cambios
-2. **SIEMPRE** indicar cómo probar ANTES de pedir commit (comandos, pasos específicos)
-3. Esperar confirmación del usuario ("haz commit", "dale commit", "commitea")
-4. Solo ENTONCES hacer `git commit`
+**Flujo correcto (OBLIGATORIO)**:
+1. ✅ Implementar cambios
+2. ✅ **SIEMPRE indicar cómo probar** ANTES de pedir commit (comandos exactos, pasos claros, URLs si es web)
+3. ⏸️ Esperar confirmación explícita del usuario:
+   - "haz commit" / "dale commit" / "commitea" / "crea el commit"
+4. ✅ Solo ENTONCES ejecutar `git commit`
 
 **NUNCA**:
 - Hacer commit automáticamente tras terminar un cambio
 - Asumir que "voy a commitear" es permiso
-- Saltarse la fase de prueba
+- Saltarse la fase de prueba/verificación
+- Skippear la indicación de "cómo probar"
 
-- Commits con `conventional-commits-standard` skill
+**Commits**:
+- Usar skill `conventional-commits-standard` antes de escribir mensaje
 - Sin atribución de IA (global CLAUDE.md lo prohíbe)
 - **NUNCA** `git push` sin confirmación explícita
+
+**Documentación**:
+- Actualizar `docs/` y `AGENTS.md` cuando cambios afecten convenciones
+- Marcar puntos del análisis (`ANALISIS_*.md`) como "✅ RESUELTO" con commit asociado
 
 ---
 

@@ -91,7 +91,8 @@ def verificar(con, usuario, password):
 
 def generar_codigo_recuperacion(con):
     """Crea un código alfanumérico de 8 caracteres, lo guarda (hash) y devuelve el código."""
-    codigo = secrets.token_urlsafe(6)[:8].upper()  # 8 caracteres alfanuméricos
+    import string
+    codigo = "".join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(8))
     expira = (datetime.now() + timedelta(minutes=MINUTOS_VIGENCIA)).isoformat()
     _guardar(con, "reset_hash", generate_password_hash(codigo))
     _guardar(con, "reset_expira", expira)

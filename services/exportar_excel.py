@@ -37,11 +37,22 @@ def _a_fecha_hora(texto):
     return str(texto)
 
 
+def _sanitizar_celda(valor):
+    """Previene formula injection en Excel anteponiendoapóstrofo a caracteres especiales."""
+    if valor is None:
+        return valor
+    texto = str(valor)
+    if texto and texto[0] in ('=', '+', '-', '@', '\t'):
+        return "'" + texto
+    return valor
+
+
 def _agregar_hoja(wb, titulo, encabezados, filas, formatos=None):
     ws = wb.create_sheet(titulo)
     ws.append(encabezados)
     for fila in filas:
-        ws.append(fila)
+        fila_sanitizada = [_sanitizar_celda(valor) for valor in fila]
+        ws.append(fila_sanitizada)
 
     for columna in range(1, len(encabezados) + 1):
         celda = ws.cell(row=1, column=columna)

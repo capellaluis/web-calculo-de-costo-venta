@@ -1,11 +1,38 @@
-# Dependencias de MI NEGOCIO
-# Se instalan con:  pip install -r requirements.txt
-# (los scripts setup.sh / setup.bat ya lo hacen por ti)
+# Dependencias de MI NEGOCIO — versiones exactas fijadas
+# Instalar con: pip install -r requirements.txt
 
-Flask>=3.0,<4          # servidor web y plantillas (incluye Jinja2)
-Flask-WTF>=1.2,<2      # protección CSRF
-Flask-Limiter>=3.5,<4  # rate limiting para login y recuperación
-openpyxl>=3.1,<4       # exportacion a Excel
-python-dotenv>=1.0,<2  # lee el archivo .env
-waitress>=3.0,<4       # servidor para uso diario (opcional en desarrollo)
-cryptography>=41,<43   # cifrado de contraseñas sensibles
+# Core web framework
+Flask==3.1.3
+Werkzeug==3.1.9
+Jinja2==3.1.6
+MarkupSafe==3.0.4
+click==8.5.0
+blinker==1.9.0
+itsdangerous==2.2.0
+
+# CSRF protection
+Flask-WTF==1.3.0
+WTForms==3.2.2
+
+# Rate limiting
+Flask-Limiter==4.1.1
+limits==5.8.0
+Deprecated==3.0.0
+
+# Production server
+waitress==3.0.2
+
+# Data processing
+openpyxl==3.1.5
+et_xmlfile==2.0.0
+
+# Configuration
+python-dotenv==1.2.4
+
+# Security (sensitive password encryption)
+cryptography==50.0.2
+cffi==2.1.1
+pycparser==3.11
+
+# Utilities
+typing_extensions==4.16.0
