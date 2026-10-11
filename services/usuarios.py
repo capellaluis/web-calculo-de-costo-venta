@@ -19,13 +19,15 @@ class ErrorUsuario(ValueError):
 def _guardar(con, clave, valor):
     con.execute(
         "INSERT INTO configuracion (clave, valor) VALUES (?, ?)"
-        " ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor", (clave, valor))
+        " ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor",
+        (clave, valor))
 
 
 def _leer(con, *claves):
     marcas = ", ".join("?" for _ in claves)
-    return {fila["clave"]: fila["valor"] for fila in con.execute(
-        "SELECT clave, valor FROM configuracion WHERE clave IN (%s)" % marcas, claves)}
+    sql = "SELECT clave, valor FROM configuracion WHERE clave IN (%s)" % marcas
+    return {fila["clave"]: fila["valor"]
+            for fila in con.execute(sql, claves)}
 
 
 def leer_usuario(con):
@@ -107,6 +109,46 @@ def limpiar_codigo_recuperacion(con):
     _guardar(con, "reset_hash", "")
     _guardar(con, "reset_expira", "")
     con.commit()
+
+
+def generar_token_instalacion(con):
+    """Genera un token alfanumérico de un solo uso para crear el primer admin.
+
+    Solo se genera una vez. Si ya existe, devuelve el existente (sin regenerar).
+    """
+    token_actual = _leer(con, "install_token").get("install_token", "")
+    if token_actual and token_actual != "USADO":
+        return token_actual
+
+    token = secrets.token_urlsafe(16)
+    _guardar(con, "install_token", token)
+    con.commit()
+    return token
+
+
+def obtener_token_instalacion(con):
+    """Obtiene el token de instalación si aún no fue usado."""
+    token = _leer(con, "install_token").get("install_token", "")
+    if token == "USADO" or not token:
+        return None
+    return token
+
+
+def verificar_token_instalacion(con, token_ingresado):
+    """Valida el token antes de crear el primer admin.
+
+    Devuelve True si el token es válido y aún no fue usado.
+    Marca el token como USADO después de validar correctamente.
+    """
+    token_guardado = _leer(con, "install_token").get("install_token", "")
+    if not token_guardado or token_guardado == "USADO":
+        return False
+    ingresado = (token_ingresado or "").strip()
+    if token_guardado != ingresado:
+        return False
+    _guardar(con, "install_token", "USADO")
+    con.commit()
+    return True
 
 
 # FIN services/usuarios.py

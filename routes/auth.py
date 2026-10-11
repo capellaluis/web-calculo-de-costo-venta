@@ -9,11 +9,14 @@ from services.usuarios import (
     cambiar_password,
     crear_usuario,
     generar_codigo_recuperacion,
+    generar_token_instalacion,
     hay_usuario,
     leer_usuario,
     limpiar_codigo_recuperacion,
+    obtener_token_instalacion,
     verificar,
     verificar_codigo_recuperacion,
+    verificar_token_instalacion,
 )
 
 bp = Blueprint("auth", __name__)
@@ -25,13 +28,24 @@ def login():
     try:
         primer_uso = not hay_usuario(con)
         error = None
+        token_instalacion = None
+
+        if primer_uso and request.method == "GET":
+            token_instalacion = generar_token_instalacion(con)
+        elif primer_uso and request.method == "GET":
+            token_instalacion = obtener_token_instalacion(con)
+
         if request.method == "POST":
             if primer_uso:
                 usuario = request.form.get("usuario", "")
                 password = request.form.get("password", "")
                 repetir = request.form.get("password2", "")
                 email = request.form.get("email", "")
-                if password != repetir:
+                token_ingresado = request.form.get("install_token", "")
+
+                if not verificar_token_instalacion(con, token_ingresado):
+                    error = "Token de instalación inválido o ya utilizado."
+                elif password != repetir:
                     error = "Las contraseñas no coinciden."
                 else:
                     try:
@@ -41,6 +55,7 @@ def login():
                         return redirect(url_for("dashboard.inicio"))
                     except ErrorUsuario as exc:
                         error = str(exc)
+                token_instalacion = obtener_token_instalacion(con)
             else:
                 if verificar(con, request.form.get("usuario", ""),
                              request.form.get("password", "")):
@@ -50,7 +65,8 @@ def login():
                 error = "Usuario o contraseña incorrectos."
     finally:
         con.close()
-    return render_template("login.html", primer_uso=primer_uso, error=error)
+    return render_template("login.html", primer_uso=primer_uso, error=error,
+                          token_instalacion=token_instalacion)
 
 
 @bp.route("/logout", methods=["GET", "POST"])

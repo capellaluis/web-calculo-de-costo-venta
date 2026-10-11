@@ -104,8 +104,10 @@ def inyectar_negocio():
 
 
 if __name__ == "__main__":
-    # Aplica migraciones pendientes (hace copia de seguridad antes de tocar la base)
+    # Crea la base si no existe; luego aplica migraciones
+    from database.db import inicializar_base
     from database.migrar import migrar
+    inicializar_base()
     migrar()
     # Configurable por .env; defaults seguros: debug=False, host=127.0.0.1
     # En desarrollo local, agregar a .env: APP_DEBUG=1, APP_HOST=0.0.0.0

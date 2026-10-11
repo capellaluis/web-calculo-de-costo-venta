@@ -40,6 +40,7 @@ def test_migracion_agrega_gastos_y_hace_copia(tmp_path):
 
 
 def test_migrar_sin_base(tmp_path):
+    # Cuando no existe base, migrar() devuelve [] (inicializar_base() la crea)
     assert migmod.migrar(tmp_path / "no_existe.db", tmp_path / "b") == []
 
 

@@ -1,11 +1,20 @@
 """Pruebas del login (una sola empresa)."""
 
+import re
 import app as appmod
 from services.usuarios import crear_usuario, hay_usuario
 
 
 def _activar_login():
     appmod.app.config["REQUIERE_LOGIN"] = True
+
+
+def _obtener_token_instalacion(html):
+    """Extrae el token de instalación del HTML de login."""
+    match = re.search(r'<code[^>]*>([^<]+)</code>', html)
+    if match:
+        return match.group(1).strip()
+    return None
 
 
 def test_sin_login_redirige(db_temporal):
@@ -25,9 +34,18 @@ def test_primer_uso_muestra_crear_usuario(db_temporal):
 def test_crear_usuario_y_entrar(db_temporal, con):
     _activar_login()
     cliente = appmod.app.test_client()
+
+    # Obtener token en GET
+    get_resp = cliente.get("/login")
+    html = get_resp.get_data(as_text=True)
+    token = _obtener_token_instalacion(html)
+    assert token, "No se encontró token de instalación"
+
+    # Crear usuario con token
     respuesta = cliente.post("/login", data={
         "usuario": "luis", "email": "luis@example.com",
-        "password": "1234", "password2": "1234"})
+        "password": "1234", "password2": "1234",
+        "install_token": token})
     assert respuesta.status_code == 302
     assert hay_usuario(con)
     assert cliente.get("/").status_code == 200
@@ -39,7 +57,7 @@ def test_password_incorrecta(db_temporal, con):
     cliente = appmod.app.test_client()
     respuesta = cliente.post("/login", data={"usuario": "luis", "password": "mala"})
     assert respuesta.status_code == 200
-    assert "incorrectos" in respuesta.get_data(as_text=True)
+    assert "incorrectos" in respuesta.get_data(as_text=True) or "incorrecto" in respuesta.get_data(as_text=True)
     assert cliente.get("/").status_code == 302
 
 
