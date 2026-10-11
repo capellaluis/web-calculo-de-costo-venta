@@ -24,6 +24,14 @@ app = Flask(__name__)
 app.secret_key = obtener_secret_key()
 app.config.setdefault("REQUIERE_LOGIN", True)
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB máximo para uploads
+
+# Configuración de cookies de sesión
+es_local = os.environ.get("APP_HOST", "127.0.0.1") in ("127.0.0.1", "localhost", "[::1]")
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = not es_local  # True en production, False en local (sin HTTPS)
+app.config["SESSION_COOKIE_HTTPONLY"] = True  # No accessible desde JavaScript
+app.config["PERMANENT_SESSION_LIFETIME"] = 24 * 60 * 60  # 24 horas
+
 CSRFProtect(app)
 limiter.init_app(app)
 app.register_blueprint(dashboard_bp)
