@@ -12,7 +12,7 @@ def _activar_login():
 
 
 def _preparar(con):
-    crear_usuario(con, "luis", "1234", "luis@example.com")
+    crear_usuario(con, "luis", "MiPassword123", "luis@example.com")
     correo.guardar_config(con, "smtp.gmail.com", "587",
                           "envio@gmail.com", "claveapp", "envio@gmail.com")
 
@@ -33,17 +33,17 @@ def test_recuperar_envia_codigo_y_cambia_la_clave(db_temporal, con, monkeypatch)
     respuesta = cliente.post("/recuperar")
     assert respuesta.status_code == 200
     assert enviados["destino"] == "luis@example.com"
-    codigo = re.search(r"Código:\s*(\d{6})", enviados["cuerpo"]).group(1)
+    codigo = re.search(r"\s+Código:\s*([A-Z0-9]{8})", enviados["cuerpo"]).group(1)
 
     # Paso 2: cambiar la clave con el código
     respuesta = cliente.post("/recuperar/cambiar", data={
-        "codigo": codigo, "password": "nueva123", "password2": "nueva123"})
+        "codigo": codigo, "password": "NuevaPassword123", "password2": "NuevaPassword123"})
     assert respuesta.status_code == 200
     assert "luis" in respuesta.get_data(as_text=True)
 
     # Ya se puede entrar con la clave nueva
     assert cliente.post("/login", data={
-        "usuario": "luis", "password": "nueva123"}).status_code == 302
+        "usuario": "luis", "password": "NuevaPassword123"}).status_code == 302
 
 
 def test_codigo_incorrecto(db_temporal, con):
@@ -57,7 +57,7 @@ def test_codigo_incorrecto(db_temporal, con):
 
 
 def test_sin_correo_configurado(db_temporal, con):
-    crear_usuario(con, "luis", "1234", "luis@example.com")
+    crear_usuario(con, "luis", "MiPassword123", "luis@example.com")
     _activar_login()
     cliente = appmod.app.test_client()
     respuesta = cliente.post("/recuperar")

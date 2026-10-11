@@ -18,7 +18,7 @@ def test_rate_limiting_desactivado_en_tests(db_temporal):
 def test_rate_limiting_se_puede_activar(db_temporal, con, limite, endpoint, datos):
     """Verifica que el rate limiting se puede activar y funciona."""
     if endpoint == "/recuperar":
-        crear_usuario(con, "admin", "1234", "admin@test.com")
+        crear_usuario(con, "admin", "MiPassword123", "admin@test.com")
 
     original = limiter.enabled
     limiter.enabled = True

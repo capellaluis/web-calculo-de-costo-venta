@@ -47,8 +47,8 @@ def crear_usuario(con, usuario, password, email=""):
     email = (email or "").strip()
     if not usuario:
         raise ErrorUsuario("Escribí un nombre de usuario.")
-    if len(password or "") < 4:
-        raise ErrorUsuario("La contraseña debe tener al menos 4 caracteres.")
+    if len(password or "") < 10:
+        raise ErrorUsuario("La contraseña debe tener al menos 10 caracteres.")
     if "@" not in email:
         raise ErrorUsuario("Escribí un correo válido (para poder recuperar el acceso).")
     _guardar(con, "usuario", usuario)
@@ -67,8 +67,8 @@ def guardar_email(con, email):
 
 
 def cambiar_password(con, password):
-    if len(password or "") < 4:
-        raise ErrorUsuario("La contraseña debe tener al menos 4 caracteres.")
+    if len(password or "") < 10:
+        raise ErrorUsuario("La contraseña debe tener al menos 10 caracteres.")
     _guardar(con, "password_hash", generate_password_hash(password))
     con.commit()
 
@@ -82,27 +82,49 @@ def verificar(con, usuario, password):
 
 
 def generar_codigo_recuperacion(con):
-    """Crea un código de 6 dígitos, lo guarda (hash) y devuelve el código."""
-    codigo = "%06d" % secrets.randbelow(1000000)
+    """Crea un código alfanumérico de 8 caracteres, lo guarda (hash) y devuelve el código."""
+    codigo = secrets.token_urlsafe(6)[:8].upper()  # 8 caracteres alfanuméricos
     expira = (datetime.now() + timedelta(minutes=MINUTOS_VIGENCIA)).isoformat()
     _guardar(con, "reset_hash", generate_password_hash(codigo))
     _guardar(con, "reset_expira", expira)
+    _guardar(con, "reset_intentos", "0")  # Reiniciar contador de intentos
     con.commit()
     return codigo
 
 
 def verificar_codigo_recuperacion(con, codigo):
-    filas = _leer(con, "reset_hash", "reset_expira")
+    filas = _leer(con, "reset_hash", "reset_expira", "reset_intentos")
     hash_guardado = filas.get("reset_hash", "")
     expira = filas.get("reset_expira", "")
+    intentos_str = filas.get("reset_intentos", "0")
+
     if not hash_guardado or not expira:
         return False
+
     try:
         if datetime.now() > datetime.fromisoformat(expira):
             return False
     except ValueError:
         return False
-    return check_password_hash(hash_guardado, (codigo or "").strip())
+
+    # Verificar límite de intentos (máx 5)
+    try:
+        intentos = int(intentos_str)
+    except (ValueError, TypeError):
+        intentos = 0
+
+    if intentos >= 5:
+        return False
+
+    # Verificar código
+    es_correcto = check_password_hash(hash_guardado, (codigo or "").strip())
+
+    if not es_correcto:
+        # Incrementar contador de intentos fallidos
+        _guardar(con, "reset_intentos", str(intentos + 1))
+        con.commit()
+
+    return es_correcto
 
 
 def limpiar_codigo_recuperacion(con):

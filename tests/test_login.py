@@ -46,7 +46,7 @@ def test_crear_usuario_y_entrar(db_temporal, con):
     # Crear usuario con token
     respuesta = cliente.post("/login", data={
         "usuario": "luis", "email": "luis@example.com",
-        "password": "1234", "password2": "1234",
+        "password": "MiPassword123", "password2": "MiPassword123",
         "install_token": token})
     assert respuesta.status_code == 302
     assert hay_usuario(con)
@@ -54,7 +54,7 @@ def test_crear_usuario_y_entrar(db_temporal, con):
 
 
 def test_password_incorrecta(db_temporal, con):
-    crear_usuario(con, "luis", "1234", "luis@example.com")
+    crear_usuario(con, "luis", "MiPassword123", "luis@example.com")
     _activar_login()
     cliente = appmod.app.test_client()
     respuesta = cliente.post("/login", data={"usuario": "luis", "password": "mala"})
@@ -64,11 +64,11 @@ def test_password_incorrecta(db_temporal, con):
 
 
 def test_login_correcto_y_logout(db_temporal, con):
-    crear_usuario(con, "luis", "1234", "luis@example.com")
+    crear_usuario(con, "luis", "MiPassword123", "luis@example.com")
     _activar_login()
     cliente = appmod.app.test_client()
 
-    assert cliente.post("/login", data={"usuario": "luis", "password": "1234"}).status_code == 302
+    assert cliente.post("/login", data={"usuario": "luis", "password": "MiPassword123"}).status_code == 302
     assert cliente.get("/").status_code == 200
 
     cliente.get("/logout")
