@@ -1,5 +1,7 @@
 """Pruebas de Configuración (valores por defecto) y de la plantilla."""
 
+import io
+
 import app as appmod
 from services.fabricados import leer_plantilla
 
@@ -44,6 +46,19 @@ def test_validacion_delivery_mayor_100(db_temporal):
     respuesta = appmod.app.test_client().post("/config/", data=datos)
     assert respuesta.status_code == 200
     assert "delivery" in respuesta.get_data(as_text=True).lower()
+
+
+def test_logo_invalido_avisa_sin_decir_que_se_guardo_todo(db_temporal):
+    cliente = appmod.app.test_client()
+    datos = {"nombre_negocio": "Panadería",
+             "logo": (io.BytesIO(b"no es una imagen"), "logo.txt")}
+    respuesta = cliente.post("/config/negocio", data=datos,
+                             content_type="multipart/form-data")
+    assert "aviso=negocio_logo" in respuesta.headers["Location"]
+
+    html = cliente.get(respuesta.headers["Location"]).get_data(as_text=True)
+    assert 'class="toast toast-advertencia"' in html
+    assert "toast-exito" not in html
 
 
 # FIN tests/test_rutas_config.py

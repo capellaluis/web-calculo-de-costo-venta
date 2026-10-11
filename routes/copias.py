@@ -2,6 +2,7 @@ from pathlib import Path
 
 from flask import Blueprint, abort, redirect, render_template, request, send_file, url_for
 
+from services.avisos import crear_aviso, leer_aviso
 from services.copias import (
     LIMITE_COPIAS,
     borrar_copia,
@@ -18,13 +19,13 @@ AVISOS = {
     "creada": "Copia creada correctamente.",
     "restaurada": "Copia restaurada. Los datos volvieron a ese momento.",
     "eliminada": "Copia eliminada.",
-    "error": "No se encontró esa copia.",
+    "error": crear_aviso("No se encontró esa copia.", tipo="error"),
 }
 
 
 @bp.route("/")
 def inicio():
-    aviso = AVISOS.get(request.args.get("aviso", ""))
+    aviso = leer_aviso(AVISOS, request.args.get("aviso"))
     return render_template("copias.html", seccion="config", copias=listar_copias(),
                            aviso=aviso, limite=LIMITE_COPIAS)
 

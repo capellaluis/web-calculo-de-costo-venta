@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_confirmacion.html" import form_confirmar %}
 {% block titulo %}{{ calculo.receta.nombre }}{% endblock %}
 {% block contenido %}
 
@@ -10,16 +11,9 @@
   <div style="display:flex; gap:10px; flex-wrap:wrap;">
     <a class="btn" href="{{ url_for('recetas.editar', receta_id=calculo.receta.id) }}"><i class="bi bi-pencil-fill"></i> Editar</a>
     <a class="btn btn-borde" href="{{ url_for('recetas.lista') }}"><i class="bi bi-arrow-left"></i> Volver</a>
-    <form method="post" action="{{ url_for('recetas.eliminar', receta_id=calculo.receta.id) }}" style="margin:0;" onsubmit="return confirm('¿Eliminar esta receta?');">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <button class="btn btn-borde" type="submit"><i class="bi bi-trash-fill"></i> Eliminar</button>
-    </form>
+    {{ form_confirmar(url_for('recetas.eliminar', receta_id=calculo.receta.id), "¿Eliminar esta receta?", etiqueta="Eliminar", compacto=False) }}
   </div>
 </div>
-
-{% if aviso %}
-<div class="tarjeta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ aviso }}</div>
-{% endif %}
 
 {% if calculo.lineas|selectattr('incompatible')|list|length %}
 <div class="tarjeta c-alerta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">

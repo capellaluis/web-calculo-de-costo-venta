@@ -103,6 +103,18 @@ templates `<modulo>_*.html`, tests en `tests/`.
 - Formato moneda en vistas: filtro de `app.py` (`$30.000`, `$1.234,50`).
 - **Cambios de esquema**: SIEMPRE nueva migración `NNN_*.sql`; actualizar también `schema.sql` para bases nuevas. Nunca editar migraciones ya aplicadas.
 - Todo endpoint requiere login salvo los de `ENDPOINTS_SIN_LOGIN` en `app.py`.
+- **Acciones destructivas** (borrar, restaurar, quitar): usar la macro `form_confirmar` de
+  `templates/_confirmacion.html` (modal de `static/js/ui.js`). Nunca `confirm()` del navegador.
+  Desde JS: `UI.confirmar({titulo, texto, aceptar, peligro}).then(ok => ...)`.
+- **Avisos tras una acción**: redirigir con `?aviso=<clave>` y resolver con
+  `services/avisos.leer_aviso(AVISOS, request.args.get("aviso"))`. Texto suelto = éxito;
+  otro tipo con `crear_aviso(texto, tipo="info|exito|advertencia|error", segundos=None)`.
+  `base.html` los muestra como notificación flotante (`templates/_avisos.html`); no pintarlos
+  a mano en cada plantilla. Tiempo: `APP_AVISO_SEGUNDOS` (5 por defecto, 0 = fijo).
+  Desde JS: `UI.notificar(texto, {tipo, titulo, segundos})`. Los errores de validación de
+  formularios (`error`) siguen inline junto al formulario.
+- **Colores**: usar tokens de `estilo.css` (`--peligro`, `--c`, `--superficie`…) y definir su
+  variante en `:root[data-tema="oscuro"]`; nunca colores fijos que rompan el modo oscuro.
 
 ## 🧪 Tests
 

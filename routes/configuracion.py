@@ -4,6 +4,7 @@ from flask import Blueprint, redirect, render_template, request, url_for
 
 from database.db import obtener_conexion
 from services import correo as correo_servicio
+from services.avisos import crear_aviso, leer_aviso
 from services.fabricados import guardar_plantilla, leer_plantilla
 from services.margenes import REDONDEOS, ErrorMargen, calcular_precio, leer_redondeo, guardar_redondeo
 from services.negocio import ErrorNegocio, guardar_logo, guardar_nombre, quitar_logo
@@ -111,8 +112,10 @@ def inicio():
 
     avisos = {"guardado": "Valores por defecto guardados.",
               "negocio": "Datos del negocio guardados.",
+              "negocio_logo": crear_aviso(
+                  "Se guardó el nombre, pero el logo no.", tipo="advertencia"),
               "correo": "Datos de correo guardados."}
-    aviso = avisos.get(request.args.get("aviso", ""))
+    aviso = leer_aviso(avisos, request.args.get("aviso"))
     if error is None and request.args.get("error"):
         error = request.args.get("error")
     return render_template("config_margenes.html", seccion="config",
@@ -154,7 +157,7 @@ def negocio():
                 guardar_logo(con, archivo)
             except ErrorNegocio as exc:
                 return redirect(url_for("configuracion.inicio",
-                                        aviso="negocio", error=str(exc)))
+                                        aviso="negocio_logo", error=str(exc)))
         return redirect(url_for("configuracion.inicio", aviso="negocio"))
     finally:
         con.close()

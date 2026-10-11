@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo.css') }}">
   <script src="{{ url_for('static', filename='js/tema.js') }}"></script>
   <script src="{{ url_for('static', filename='js/menu.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/ui.js') }}" defer></script>
 </head>
 <body>
 
@@ -96,6 +97,14 @@
 <main class="contenido c-{{ seccion|default('dashboard') }}">
   {% block contenido %}{% endblock %}
 </main>
+
+{# ===== Notificaciones flotantes (avisos tras una acción) ===== #}
+{% from "_avisos.html" import notificacion %}
+<div class="toasts" id="toasts" data-segundos="{{ aviso_segundos }}">
+  {%- if aviso %}
+  {{ notificacion(aviso, segundos_defecto=aviso_segundos) }}
+  {%- endif %}
+</div>
 
 {% block scripts %}{% endblock %}
 </body>

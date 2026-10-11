@@ -1,0 +1,27 @@
+{#
+  Formulario de acción destructiva con confirmación en ventana modal (static/js/ui.js).
+
+  Uso:
+    {% from "_confirmacion.html" import form_confirmar %}
+    {{ form_confirmar(url_for('proveedores.eliminar', proveedor_id=p.id), "¿Eliminar este proveedor?") }}
+
+  Parámetros:
+    action    URL del POST.
+    titulo    Pregunta del modal.
+    texto     Aclaración debajo del título.
+    boton     Texto del botón que confirma.
+    etiqueta  Texto visible del botón de la página; vacío = solo ícono.
+    icono     Clase de Bootstrap Icons del botón de la página.
+    compacto  Botón chico para filas de tablas.
+    campos    Campos ocultos extra {nombre: valor}.
+    accion    Nombre accesible del botón cuando es solo ícono.
+#}
+{% macro form_confirmar(action, titulo, texto="Esta acción no se puede deshacer.", boton="Sí, eliminar", etiqueta="", icono="bi-trash-fill", compacto=True, campos={}, accion="Eliminar") -%}
+<form method="post" action="{{ action }}" style="margin:0;" data-confirmar="{{ titulo }}" data-confirmar-texto="{{ texto }}" data-confirmar-boton="{{ boton }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {%- for nombre, valor in campos.items() %}
+  <input type="hidden" name="{{ nombre }}" value="{{ valor }}">
+  {%- endfor %}
+  <button class="btn btn-borde"{% if compacto %} style="padding:6px 12px;"{% endif %} type="submit"{% if not etiqueta %} title="{{ accion }}" aria-label="{{ accion }}"{% endif %}><i class="bi {{ icono }}" aria-hidden="true"></i>{% if etiqueta %} {{ etiqueta }}{% endif %}</button>
+</form>
+{%- endmacro %}

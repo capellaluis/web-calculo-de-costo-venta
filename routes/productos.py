@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, abort
 
 from database.db import obtener_conexion
+from services.avisos import crear_aviso, leer_aviso
 from services.numeros import leer_precio
 
 bp = Blueprint("productos", __name__, url_prefix="/productos")
@@ -9,7 +10,7 @@ AVISOS = {
     "creado": "Producto creado correctamente.",
     "editado": "Cambios guardados correctamente.",
     "eliminado": "Producto eliminado.",
-    "con_compras": "No se puede eliminar: el producto tiene compras o recetas registradas.",
+    "con_compras": crear_aviso("No se puede eliminar: el producto tiene compras o recetas registradas.", tipo="error"),
 }
 
 
@@ -17,7 +18,7 @@ AVISOS = {
 def lista():
     busqueda = request.args.get("q", "").strip()
     categoria = request.args.get("categoria", "").strip()
-    aviso = AVISOS.get(request.args.get("aviso", ""))
+    aviso = leer_aviso(AVISOS, request.args.get("aviso"))
     sql = (
         "SELECT p.*, c.nombre AS categoria, uc.abreviatura AS unidad_compra, "
         "uu.abreviatura AS unidad_uso, pr.nombre AS proveedor "

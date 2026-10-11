@@ -1,0 +1,29 @@
+{#
+  Notificación flotante (sistema de diseño: "Avisos y notificaciones").
+  El contenedor .toasts vive en base.html; static/js/ui.js agrega el tiempo y el cierre.
+
+  Uso:
+    {% from "_avisos.html" import notificacion %}
+    {{ notificacion(aviso, segundos_defecto=aviso_segundos) }}
+
+  aviso: dict de services/avisos.crear_aviso {texto, tipo, segundos}
+         o texto suelto (= éxito).
+  tipo:  info | exito | advertencia | error
+  segundos: 0 = no se oculta solo.
+  Desde JS: UI.notificar(texto, {tipo, titulo, segundos}).
+#}
+{% macro notificacion(aviso, segundos_defecto=5) -%}
+{%- set iconos = {
+  "info": "bi-info-circle-fill",
+  "exito": "bi-check-circle-fill",
+  "advertencia": "bi-exclamation-triangle-fill",
+  "error": "bi-x-circle-fill",
+} -%}
+{%- set a = aviso if aviso is mapping else {"texto": aviso, "tipo": "exito", "segundos": none} -%}
+{%- set segundos = a.segundos if a.segundos is not none else segundos_defecto -%}
+<div class="toast toast-{{ a.tipo }}" role="{{ 'alert' if a.tipo == 'error' else 'status' }}" data-segundos="{{ segundos }}">
+  <i class="bi {{ iconos[a.tipo] }}" aria-hidden="true"></i>
+  <div class="toast-texto">{{ a.texto }}</div>
+  <button type="button" class="cerrar" aria-label="Cerrar aviso"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+</div>
+{%- endmacro %}

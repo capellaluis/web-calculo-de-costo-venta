@@ -4,6 +4,7 @@ from decimal import InvalidOperation
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 
 from database.db import obtener_conexion
+from services.avisos import crear_aviso, leer_aviso
 from services.compras import (
     ErrorCompra,
     actualizar_compra,
@@ -19,7 +20,7 @@ AVISOS = {
     "creado": "Compra registrada correctamente.",
     "editado": "Cambios guardados correctamente.",
     "eliminado": "Compra eliminada.",
-    "error": "No se pudo eliminar la compra.",
+    "error": crear_aviso("No se pudo eliminar la compra.", tipo="error"),
 }
 
 
@@ -41,7 +42,7 @@ def lista():
     desde = request.args.get("desde", "").strip()
     hasta = request.args.get("hasta", "").strip()
     proveedor = request.args.get("proveedor", "").strip()
-    aviso = AVISOS.get(request.args.get("aviso", ""))
+    aviso = leer_aviso(AVISOS, request.args.get("aviso"))
     sin_historial = request.args.get("sin_historial", "").strip()
 
     sql = ("SELECT c.*, p.nombre AS proveedor FROM compras c "
@@ -240,7 +241,7 @@ def ver(compra_id):
         con.close()
     return render_template("compras_ver.html", seccion="compras", compra=compra,
                            detalle=detalle, afectados=afectados,
-                           aviso=AVISOS.get(request.args.get("aviso", "")))
+                           aviso=leer_aviso(AVISOS, request.args.get("aviso")))
 
 
 @bp.route("/<int:compra_id>/eliminar", methods=["POST"])

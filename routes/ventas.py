@@ -4,6 +4,7 @@ from decimal import Decimal, InvalidOperation
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 
 from database.db import obtener_conexion
+from services.avisos import leer_aviso
 from services.numeros import leer_decimal
 from services.ventas import (
     CANALES,
@@ -105,7 +106,7 @@ def _items_mostrados(con):
 @bp.route("/")
 def lista():
     filtros = _filtros()
-    aviso = AVISOS.get(request.args.get("aviso", ""))
+    aviso = leer_aviso(AVISOS, request.args.get("aviso"))
     con = obtener_conexion()
     try:
         pedidos = listar_pedidos(con, filtros)
@@ -160,7 +161,7 @@ def ver(pedido_id):
         abort(404)
     return render_template("ventas_ver.html", seccion="ventas", calculo=calculo,
                            canales=CANALES, estados=ESTADOS,
-                           aviso=AVISOS.get(request.args.get("aviso", "")))
+                           aviso=leer_aviso(AVISOS, request.args.get("aviso")))
 
 
 @bp.route("/<int:pedido_id>/editar", methods=["GET", "POST"])

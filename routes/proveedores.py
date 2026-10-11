@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, abort
 
 from database.db import obtener_conexion
+from services.avisos import crear_aviso, leer_aviso
 
 bp = Blueprint("proveedores", __name__, url_prefix="/proveedores")
 
@@ -21,7 +22,7 @@ def leer_formulario():
 @bp.route("/")
 def lista():
     busqueda = request.args.get("q", "").strip()
-    aviso = AVISOS.get(request.args.get("aviso", ""))
+    aviso = leer_aviso(AVISOS, request.args.get("aviso"))
     con = obtener_conexion()
     try:
         if busqueda:
@@ -89,8 +90,9 @@ def ver(proveedor_id):
                            proveedor=proveedor, compras=compras)
 # (aqui termina la parte 2a)
 
-AVISOS["con_compras"] = (
-    "No se puede eliminar: el proveedor tiene compras registradas."
+AVISOS["con_compras"] = crear_aviso(
+    "No se puede eliminar: el proveedor tiene compras registradas.",
+    tipo="error",
 )
 
 

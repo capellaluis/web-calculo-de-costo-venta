@@ -3,6 +3,7 @@ from decimal import InvalidOperation
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 
 from database.db import obtener_conexion
+from services.avisos import leer_aviso
 from services.fabricados import (
     ErrorFabricado,
     calcular_fabricado,
@@ -46,7 +47,7 @@ def cargar_listas(con):
 
 @bp.route("/")
 def lista():
-    aviso = AVISOS.get(request.args.get("aviso", ""))
+    aviso = leer_aviso(AVISOS, request.args.get("aviso"))
     con = obtener_conexion()
     try:
         fabricados = [calcular_fabricado(con, fila["id"])
@@ -137,7 +138,7 @@ def ver(fabricado_id):
     finally:
         con.close()
     return render_template("fabricados_ver.html", seccion="fabricados", calculo=calculo,
-                           aviso=AVISOS.get(request.args.get("aviso", "")))
+                           aviso=leer_aviso(AVISOS, request.args.get("aviso")))
 
 
 @bp.route("/<int:fabricado_id>/editar", methods=["GET", "POST"])

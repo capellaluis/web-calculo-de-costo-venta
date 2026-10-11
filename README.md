@@ -283,6 +283,7 @@ notas o con VS Code. **Nunca se sube a Git.**
 | `SECRET_KEY` | Clave secreta de la aplicación (se genera sola). Si la cambiás, se cierran las sesiones abiertas. |
 | `APP_HOST` | `127.0.0.1` = solo esta máquina. `0.0.0.0` = también desde otros equipos del Wi-Fi (Raspberry). |
 | `APP_PORT` | Puerto (por defecto 5000). |
+| `APP_AVISO_SEGUNDOS` | Segundos que se ven los avisos ("Proveedor eliminado.", etc.) antes de ocultarse solos. Por defecto 5; `0` = no se ocultan (se cierran con la ✕). Opcional. |
 
 Para generar o cambiar la `SECRET_KEY` a mano, ver
 [Inicializar el `.env` con tu propia clave](#inicializar-el-env-con-tu-propia-clave).

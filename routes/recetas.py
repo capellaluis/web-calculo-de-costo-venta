@@ -3,6 +3,7 @@ from decimal import InvalidOperation
 from flask import Blueprint, abort, redirect, render_template, request, url_for
 
 from database.db import obtener_conexion
+from services.avisos import crear_aviso, leer_aviso
 from services.gastos import leer_gastos
 from services.margenes import calcular_precios_venta, leer_margenes, leer_redondeo
 from services.numeros import leer_decimal
@@ -16,7 +17,7 @@ AVISOS = {
     "creado": "Receta creada correctamente.",
     "editado": "Cambios guardados correctamente.",
     "eliminado": "Receta eliminada.",
-    "con_fabricados": "No se puede eliminar: la receta se usa en productos fabricados.",
+    "con_fabricados": crear_aviso("No se puede eliminar: la receta se usa en productos fabricados.", tipo="error"),
 }
 
 
@@ -34,7 +35,7 @@ def cargar_listas(con):
 
 @bp.route("/")
 def lista():
-    aviso = AVISOS.get(request.args.get("aviso", ""))
+    aviso = leer_aviso(AVISOS, request.args.get("aviso"))
     con = obtener_conexion()
     try:
         recetas = con.execute("SELECT * FROM recetas ORDER BY nombre").fetchall()
@@ -181,7 +182,7 @@ def ver(receta_id):
         con.close()
     return render_template("recetas_ver.html", seccion="recetas", calculo=calculo,
                            margenes=margenes, precio=precio, colores=COLORES_MARGEN,
-                           aviso=AVISOS.get(request.args.get("aviso", "")))
+                           aviso=leer_aviso(AVISOS, request.args.get("aviso")))
 
 
 def _datos_de_receta(receta):

@@ -143,6 +143,13 @@ def inyectar_negocio():
     return {"negocio": negocio}
 
 
+@app.context_processor
+def inyectar_avisos():
+    """Segundos hasta que se ocultan los avisos (APP_AVISO_SEGUNDOS, 5 por defecto)."""
+    from services.avisos import segundos_por_defecto
+    return {"aviso_segundos": segundos_por_defecto()}
+
+
 if __name__ == "__main__":
     # Crea la base si no existe; luego aplica migraciones
     from database.db import inicializar_base

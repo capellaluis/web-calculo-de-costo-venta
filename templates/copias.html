@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_confirmacion.html" import form_confirmar %}
 {% block titulo %}Copias de seguridad{% endblock %}
 {% block contenido %}
 
@@ -9,10 +10,6 @@
   </div>
   <a class="btn btn-borde" href="{{ url_for('configuracion.inicio') }}"><i class="bi bi-arrow-left"></i> Configuración</a>
 </div>
-
-{% if aviso %}
-<div class="tarjeta" style="margin-bottom:16px; padding:12px 18px; background:var(--c-suave); color:var(--c); font-weight:600;">{{ aviso }}</div>
-{% endif %}
 
 <div class="tarjeta" style="margin-bottom:18px;">
   <h2><i class="bi bi-plus-circle"></i> Crear una copia</h2>
@@ -39,16 +36,8 @@
           <td>
             <div style="display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap;">
               <a class="btn btn-suave" style="padding:6px 12px;" href="{{ url_for('copias.descargar', nombre=c.nombre) }}"><i class="bi bi-download"></i> Descargar</a>
-              <form method="post" action="{{ url_for('copias.restaurar') }}" style="margin:0;" onsubmit="return confirm('¿Restaurar esta copia? Se reemplazan los datos actuales (se guarda una copia de seguridad antes).');">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="nombre" value="{{ c.nombre }}">
-                <button class="btn btn-borde" style="padding:6px 12px;" type="submit"><i class="bi bi-arrow-counterclockwise"></i> Restaurar</button>
-              </form>
-              <form method="post" action="{{ url_for('copias.eliminar') }}" style="margin:0;" onsubmit="return confirm('¿Eliminar esta copia?');">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="nombre" value="{{ c.nombre }}">
-                <button class="btn btn-borde" style="padding:6px 12px;" type="submit"><i class="bi bi-trash-fill"></i></button>
-              </form>
+              {{ form_confirmar(url_for('copias.restaurar'), "¿Restaurar esta copia?", texto="Se reemplazan los datos actuales. Antes se guarda una copia de seguridad.", boton="Sí, restaurar", etiqueta="Restaurar", icono="bi-arrow-counterclockwise", campos={"nombre": c.nombre}) }}
+              {{ form_confirmar(url_for('copias.eliminar'), "¿Eliminar esta copia?", campos={"nombre": c.nombre}) }}
             </div>
           </td>
         </tr>
