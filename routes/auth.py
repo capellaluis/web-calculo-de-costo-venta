@@ -36,7 +36,7 @@ def login():
             from database.db import RUTA_DB
             ruta_token = RUTA_DB.parent.parent / "INSTALL_TOKEN.txt"
             generar_token_instalacion(con, ruta_token)
-            token_archivo = str(ruta_token)
+            token_archivo = "INSTALL_TOKEN.txt"  # Solo nombre, no ruta absoluta
 
         if request.method == "POST":
             if primer_uso:

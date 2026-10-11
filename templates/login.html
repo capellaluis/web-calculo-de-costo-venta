@@ -30,9 +30,9 @@
     <p class="subtitulo" style="margin-bottom:12px;">Primera vez: creá tu <strong>usuario administrador</strong>.</p>
     {% if token_archivo %}
     <div style="margin-bottom:16px; padding:12px; background:#dcfce7; border:1px solid #16a34a; border-radius:6px;">
-      <p style="margin:0; font-size:0.9rem; color:#165e40; font-weight:500;">🔐 Token guardado en:</p>
-      <code style="display:block; padding:8px; background:#fff; border-radius:4px; font-size:0.85rem; word-break:break-word; color:#000; margin-top:6px;">{{ token_archivo }}</code>
-      <p style="margin:8px 0 0 0; font-size:0.8rem; color:#165e40;">Copiá el contenido del archivo y pegalo abajo.</p>
+      <p style="margin:0; font-size:0.9rem; color:#165e40; font-weight:500;">🔐 Token guardado en archivo:</p>
+      <code style="display:block; padding:8px; background:#fff; border-radius:4px; font-size:0.9rem; color:#000; margin-top:6px;">{{ token_archivo }}</code>
+      <p style="margin:8px 0 0 0; font-size:0.8rem; color:#165e40;">Abrí el archivo, copiá el token y pegalo abajo.</p>
     </div>
     {% endif %}
     <form method="post" action="{{ url_for('auth.login') }}">
