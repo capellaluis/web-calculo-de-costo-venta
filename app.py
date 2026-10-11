@@ -23,6 +23,7 @@ from services.seguridad import obtener_secret_key
 app = Flask(__name__)
 app.secret_key = obtener_secret_key()
 app.config.setdefault("REQUIERE_LOGIN", True)
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB máximo para uploads
 CSRFProtect(app)
 limiter.init_app(app)
 app.register_blueprint(dashboard_bp)
