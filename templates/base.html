@@ -7,70 +7,84 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='icons/bootstrap-icons.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo.css') }}">
   <script src="{{ url_for('static', filename='js/tema.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/menu.js') }}" defer></script>
 </head>
 <body>
 
-<nav class="menu">
-  <a class="marca" href="{{ url_for('dashboard.inicio') }}">
-    {% if negocio.logo %}
-    <img class="logo" src="{{ url_for('static', filename='uploads/' ~ negocio.logo) }}" alt="Logo" style="width:38px; height:38px; border-radius:12px; object-fit:cover; flex-shrink:0;">
-    {% else %}
-    <div class="logo"><i class="bi bi-shop"></i></div>
-    {% endif %}
-    <span>{{ negocio.nombre }}</span>
-  </a>
+{% macro logo() %}
+  {% if negocio.logo %}
+  <img class="logo logo-img" src="{{ url_for('static', filename='uploads/' ~ negocio.logo) }}" alt="Logo">
+  {% else %}
+  <div class="logo"><i class="bi bi-shop"></i></div>
+  {% endif %}
+{% endmacro %}
 
-  <div class="menu-titulo">Principal</div>
-  <a class="nav-item c-dashboard{{ ' activo' if seccion == 'dashboard' }}" href="{{ url_for('dashboard.inicio') }}">
-    <i class="bi bi-house-door-fill"></i><span>Panel principal</span>
+{% macro item(clase, endpoint, icono, texto, clave) %}
+  <a class="nav-item {{ clase }}{{ ' activo' if seccion == clave }}" href="{{ url_for(endpoint) }}">
+    <i class="bi {{ icono }}"></i><span>{{ texto }}</span>
   </a>
-  <a class="nav-item c-proveedores{{ ' activo' if seccion == 'proveedores' }}" href="{{ url_for('proveedores.lista') }}">
-    <i class="bi bi-people-fill"></i><span>Proveedores</span>
-  </a>
-  <a class="nav-item c-compras{{ ' activo' if seccion == 'compras' }}" href="{{ url_for('compras.lista') }}">
-    <i class="bi bi-cart-fill"></i><span>Compras</span>
-  </a>
-  <a class="nav-item c-productos{{ ' activo' if seccion == 'productos' }}" href="{{ url_for('productos.lista') }}">
-    <i class="bi bi-box-seam-fill"></i><span>Productos</span>
-  </a>
-  <a class="nav-item c-precios{{ ' activo' if seccion == 'precios' }}" href="{{ url_for('precios.lista') }}">
-    <i class="bi bi-graph-up-arrow"></i><span>Historial de precios</span>
-  </a>
-  <a class="nav-item c-ventas{{ ' activo' if seccion == 'ventas' }}" href="{{ url_for('ventas.lista') }}">
-    <i class="bi bi-receipt"></i><span>Ventas</span>
-  </a>
+{% endmacro %}
 
-  <div class="menu-titulo">Producción</div>
-  <a class="nav-item c-recetas{{ ' activo' if seccion == 'recetas' }}" href="{{ url_for('recetas.lista') }}">
-    <i class="bi bi-egg-fried"></i><span>Recetas</span>
-  </a>
-  <a class="nav-item c-costos{{ ' activo' if seccion == 'costos' }}" href="{{ url_for('costos.lista') }}">
-    <i class="bi bi-calculator-fill"></i><span>Costos</span>
-  </a>
-  <a class="nav-item c-fabricados{{ ' activo' if seccion == 'fabricados' }}" href="{{ url_for('fabricados.lista') }}">
-    <i class="bi bi-boxes"></i><span>Productos fabricados</span>
-  </a>
+{% macro grupo(titulo, abierto=true) %}
+  <details class="menu-grupo"{{ ' open' if abierto }}>
+    <summary class="menu-titulo">{{ titulo }}<i class="bi bi-chevron-down"></i></summary>
+    {{ caller() }}
+  </details>
+{% endmacro %}
 
-  <div class="menu-titulo">Sistema</div>
-  <a class="nav-item c-reportes{{ ' activo' if seccion == 'reportes' }}" href="{{ url_for('reportes.inicio') }}">
-    <i class="bi bi-bar-chart-fill"></i><span>Reportes</span>
-  </a>
-  <a class="nav-item c-compras{{ ' activo' if seccion == 'excel' }}" href="{{ url_for('excel.inicio') }}">
-    <i class="bi bi-file-earmark-excel-fill"></i><span>Excel</span>
-  </a>
-  <a class="nav-item c-config{{ ' activo' if seccion == 'config' }}" href="{{ url_for('configuracion.inicio') }}">
-    <i class="bi bi-gear-fill"></i><span>Configuración</span>
-  </a>
+{# ===== TopBar (solo móvil) ===== #}
+<header class="topbar">
+  <a class="marca" href="{{ url_for('dashboard.inicio') }}">{{ logo() }}<span>{{ negocio.nombre }}</span></a>
+  <button type="button" class="topbar-btn" id="botonMenu" aria-label="Abrir menú" aria-controls="menuLateral" aria-expanded="false">
+    <i class="bi bi-list"></i>
+  </button>
+</header>
 
-  <div style="margin-top:auto; padding-top:14px;">
-    <div class="menu-titulo">Sesión</div>
-    <div class="nav-item" style="cursor:default; color:var(--texto-suave);">
-      <i class="bi bi-person-circle"></i><span>{{ session.get('usuario', '') }}</span>
-    </div>
-    <a class="nav-item" href="{{ url_for('auth.logout') }}">
-      <i class="bi bi-box-arrow-right"></i><span>Salir</span>
-    </a>
+{# ===== Sidebar (escritorio) / Drawer (móvil) ===== #}
+<div class="menu-fondo" id="menuFondo"></div>
+<nav class="menu" id="menuLateral" aria-label="Menú principal">
+  <a class="marca" href="{{ url_for('dashboard.inicio') }}">{{ logo() }}<span>{{ negocio.nombre }}</span></a>
+
+  {% call grupo('Principal') %}
+    {{ item('c-dashboard', 'dashboard.inicio', 'bi-house-door-fill', 'Panel principal', 'dashboard') }}
+    {{ item('c-proveedores', 'proveedores.lista', 'bi-people-fill', 'Proveedores', 'proveedores') }}
+    {{ item('c-compras', 'compras.lista', 'bi-cart-fill', 'Compras', 'compras') }}
+    {{ item('c-productos', 'productos.lista', 'bi-box-seam-fill', 'Productos', 'productos') }}
+    {{ item('c-precios', 'precios.lista', 'bi-graph-up-arrow', 'Historial de precios', 'precios') }}
+    {{ item('c-ventas', 'ventas.lista', 'bi-receipt', 'Ventas', 'ventas') }}
+  {% endcall %}
+
+  {% call grupo('Producción') %}
+    {{ item('c-recetas', 'recetas.lista', 'bi-egg-fried', 'Recetas', 'recetas') }}
+    {{ item('c-costos', 'costos.lista', 'bi-calculator-fill', 'Costos', 'costos') }}
+    {{ item('c-fabricados', 'fabricados.lista', 'bi-boxes', 'Productos fabricados', 'fabricados') }}
+  {% endcall %}
+
+  {% call grupo('Sistema') %}
+    {{ item('c-reportes', 'reportes.inicio', 'bi-bar-chart-fill', 'Reportes', 'reportes') }}
+    {{ item('c-compras', 'excel.inicio', 'bi-file-earmark-excel-fill', 'Excel', 'excel') }}
+    {{ item('c-config', 'configuracion.inicio', 'bi-gear-fill', 'Configuración', 'config') }}
+  {% endcall %}
+
+  <div class="menu-sesion">
+    {% call grupo('Sesión') %}
+      <div class="nav-item nav-usuario">
+        <i class="bi bi-person-circle"></i><span>{{ session.get('usuario', '') }}</span>
+      </div>
+      <a class="nav-item" href="{{ url_for('auth.logout') }}">
+        <i class="bi bi-box-arrow-right"></i><span>Salir</span>
+      </a>
+    {% endcall %}
   </div>
+</nav>
+
+{# ===== BottomBar (solo móvil) ===== #}
+<nav class="bottombar" aria-label="Acceso rápido">
+  <a class="c-dashboard{{ ' activo' if seccion == 'dashboard' }}" href="{{ url_for('dashboard.inicio') }}"><i class="bi bi-house-door-fill"></i><span>Inicio</span></a>
+  <a class="c-compras{{ ' activo' if seccion == 'compras' }}" href="{{ url_for('compras.lista') }}"><i class="bi bi-cart-fill"></i><span>Compras</span></a>
+  <a class="c-productos{{ ' activo' if seccion == 'productos' }}" href="{{ url_for('productos.lista') }}"><i class="bi bi-box-seam-fill"></i><span>Productos</span></a>
+  <a class="c-reportes{{ ' activo' if seccion == 'reportes' }}" href="{{ url_for('reportes.inicio') }}"><i class="bi bi-bar-chart-fill"></i><span>Reportes</span></a>
+  <button type="button" id="botonMas" aria-label="Abrir menú"><i class="bi bi-three-dots"></i><span>Más</span></button>
 </nav>
 
 <main class="contenido c-{{ seccion|default('dashboard') }}">
