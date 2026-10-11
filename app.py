@@ -90,6 +90,35 @@ def copia_automatica(response):
     return response
 
 
+@app.after_request
+def agregar_cabeceras_seguridad(response):
+    """Agrega cabeceras de seguridad. Menos estrictas en localhost, completas en producción."""
+    from flask import request
+
+    es_local = request.remote_addr in ("127.0.0.1", "localhost", "::1")
+    es_https = request.scheme == "https" or os.environ.get("WERKZEUG_RUN_MAIN") == "true"
+
+    # X-Content-Type-Options: previene MIME sniffing
+    response.headers["X-Content-Type-Options"] = "nosniff"
+
+    # X-Frame-Options: previene clickjacking
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+
+    # Referrer-Policy: controla qué referrer se envía
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+    # CSP: más permisiva en local, más estricta en producción
+    if es_local:
+        # Local: permite inline scripts/styles (desarrollo)
+        csp = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+    else:
+        # Producción: sin inline, solo assets de la app
+        csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self';"
+
+    response.headers["Content-Security-Policy"] = csp
+    return response
+
+
 @app.context_processor
 def inyectar_negocio():
     """Deja el nombre y el logo disponibles en todas las plantillas."""
