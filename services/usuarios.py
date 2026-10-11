@@ -75,10 +75,18 @@ def cambiar_password(con, password):
 
 def verificar(con, usuario, password):
     datos = leer_usuario(con)
-    if not datos["usuario"] or not datos["hash"]:
-        return False
-    return (datos["usuario"] == (usuario or "").strip()
-            and check_password_hash(datos["hash"], password or ""))
+    usuario_ingresado = (usuario or "").strip()
+    password_ingresado = password or ""
+
+    usuario_existe = bool(datos["usuario"] and datos["hash"])
+    usuario_coincide = datos["usuario"] == usuario_ingresado
+
+    # Timing attack mitigation: SIEMPRE ejecutar check_password_hash con el mismo tiempo,
+    # incluso si el usuario no existe. Usa un hash dummy en ese caso.
+    hash_a_verificar = datos["hash"] if usuario_existe else "pbkdf2:sha256$260000$dummy$dummy"
+    password_valido = check_password_hash(hash_a_verificar, password_ingresado)
+
+    return usuario_existe and usuario_coincide and password_valido
 
 
 def generar_codigo_recuperacion(con):
