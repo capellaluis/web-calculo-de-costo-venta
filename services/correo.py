@@ -2,10 +2,12 @@
 
 Pensado para Gmail con "contraseña de aplicación" (smtp.gmail.com, puerto 587).
 Los datos se guardan en la tabla `configuracion` (claves `smtp_*`).
+La contraseña se cifra en reposo (Fernet).
 """
 
 import smtplib
 from email.mime.text import MIMEText
+from services.seguridad import cifrar, descifrar
 
 HOST_DEFECTO = "smtp.gmail.com"
 PUERTO_DEFECTO = 587
@@ -29,11 +31,12 @@ def leer_config(con):
     except ValueError:
         puerto = PUERTO_DEFECTO
     usuario = filas.get("smtp_usuario", "")
+    password_cifrada = filas.get("smtp_password", "")
     return {
         "host": filas.get("smtp_host") or HOST_DEFECTO,
         "puerto": puerto,
         "usuario": usuario,
-        "password": filas.get("smtp_password", ""),
+        "password": descifrar(password_cifrada),  # Descifra al leer
         "remitente": filas.get("smtp_remitente") or usuario,
     }
 
@@ -47,7 +50,9 @@ def guardar_config(con, host, puerto, usuario, password, remitente):
     _guardar(con, "smtp_host", (host or HOST_DEFECTO).strip())
     _guardar(con, "smtp_puerto", str(puerto or PUERTO_DEFECTO))
     _guardar(con, "smtp_usuario", (usuario or "").strip())
-    _guardar(con, "smtp_password", (password or "").strip())
+    # Si password no está vacío, cifrarlo; si está vacío, no cambiar
+    if password:
+        _guardar(con, "smtp_password", cifrar((password or "").strip()))
     _guardar(con, "smtp_remitente", (remitente or "").strip())
     con.commit()
 

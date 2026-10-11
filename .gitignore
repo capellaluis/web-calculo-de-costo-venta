@@ -32,3 +32,4 @@ static/uploads/
 # Excel exportado y copias de seguridad de la base
 exports/
 backups/
+INSTALL_TOKEN.txt

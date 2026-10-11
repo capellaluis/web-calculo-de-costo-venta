@@ -201,6 +201,13 @@ usuario, **correo** y contraseña. Después, todo pide **iniciar sesión**.
   y creá una "Contraseña de aplicaciones"). Sin internet, la recuperación por correo
   no funciona.
 
+> **TODO**: La función de correo actual usa SMTP directo a Gmail. Para producción o mayor confiabilidad,
+> considerar migrar a **SendGrid** o un servicio similar:
+> - **Reemplazar en**: `services/correo.py` — cambiar `smtplib.SMTP()` por la API HTTP de SendGrid
+> - **Instalar**: `pip install sendgrid` (agregar a `requirements.txt`)
+> - **Configurar**: guardar la clave de API de SendGrid en `.env` (`SENDGRID_API_KEY`) en lugar de la contraseña SMTP
+> - **Beneficios**: webhooks de entrega, mejor manejo de errores, no exponer credenciales SMTP en la red local
+
 ---
 
 ## 5. Qué incluye
