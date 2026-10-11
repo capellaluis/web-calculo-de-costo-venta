@@ -26,6 +26,11 @@ htmlcov/
 .idea/
 .DS_Store
 
+# Claude Code: se versionan las skills (.skills/ y el symlink .claude/skills),
+# no la configuración personal ni archivos de estado
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
 # Logos y archivos subidos por el usuario
 static/uploads/
 

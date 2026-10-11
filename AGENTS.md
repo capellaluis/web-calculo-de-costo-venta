@@ -13,6 +13,34 @@ para el uso diario.
 >
 > Skill principal para este stack: `python-architect`.
 
+## 🧰 Skills del proyecto (versionadas)
+
+Las skills de uso diario viven en **`.skills/`** (fuente de verdad, versionada).
+`.claude/skills` es un symlink a `../.skills`, así Claude Code las descubre solo al clonar.
+Otros agentes: leer `.skills/<skill>/SKILL.md` antes de actuar cuando aplique el trigger.
+
+| Dominio | Skill | Cuándo |
+|---|---|---|
+| **Negocio** | [`negocio-costos`](.skills/negocio-costos/SKILL.md) | Costos, precios, márgenes, unidades, compras, recetas, fabricados, ventas. **Obligatoria** antes de tocar cálculos. |
+| Python | [`python-architect`](.skills/python-architect/SKILL.md) | Nuevos módulos/services, tipado, estructura. |
+| Commits | [`conventional-commits-standard`](.skills/conventional-commits-standard/SKILL.md) | Todo mensaje de commit (solo con pedido explícito). |
+| Commits | [`work-unit-commits`](.skills/work-unit-commits/SKILL.md) | Dividir cambios en commits revisables (test + código + docs). |
+| PRs | [`branch-pr`](.skills/branch-pr/SKILL.md) / [`chained-pr`](.skills/chained-pr/SKILL.md) | Abrir PR a `master`; dividir PRs > 400 líneas. |
+| Review | [`judgment-day`](.skills/judgment-day/SKILL.md) | Review adversarial doble antes de mergear cambios críticos. |
+| Diseño UI | [`frontend-design`](.skills/frontend-design/SKILL.md) | Templates Jinja, CSS, UX de pantallas. |
+| Diseño UI | [`theme-factory`](.skills/theme-factory/SKILL.md) | Paletas y temas (claro/oscuro). |
+| Testing web | [`webapp-testing`](.skills/webapp-testing/SKILL.md) | Pruebas E2E de la web con Playwright. |
+| Docs | [`cognitive-doc-design`](.skills/cognitive-doc-design/SKILL.md) | `docs/`, README, `ANALISIS_*.md`. |
+
+No versionadas (vienen con Claude Code o con la config global): `/security-review`, `/code-review`,
+`/simplify`, `xlsx` y `pdf` (licencia propietaria de Anthropic, no copiar al repo), `sdd-*`.
+
+**Actualizar una skill**: editar en `.skills/` y commitear. Las copiadas desde
+`~/repos/skills-engine` no se sincronizan solas; re-copiar si cambia el origen.
+
+**Windows**: el symlink requiere `git config core.symlinks true` (y modo desarrollador)
+antes de clonar; si no, `.claude/skills` queda como archivo de texto y hay que recrearlo.
+
 ---
 
 ## ⚠️ Git Policy — CRÍTICO
