@@ -24,16 +24,19 @@ bp = Blueprint("auth", __name__)
 
 @bp.route("/login", methods=["GET", "POST"])
 def login():
+    from pathlib import Path
     con = obtener_conexion()
     try:
         primer_uso = not hay_usuario(con)
         error = None
-        token_instalacion = None
+        token_archivo = None
 
         if primer_uso and request.method == "GET":
-            token_instalacion = generar_token_instalacion(con)
-        elif primer_uso and request.method == "GET":
-            token_instalacion = obtener_token_instalacion(con)
+            # Generar token y guardarlo en archivo INSTALL_TOKEN.txt
+            from database.db import RUTA_DB
+            ruta_token = RUTA_DB.parent.parent / "INSTALL_TOKEN.txt"
+            generar_token_instalacion(con, ruta_token)
+            token_archivo = str(ruta_token)
 
         if request.method == "POST":
             if primer_uso:
@@ -55,7 +58,6 @@ def login():
                         return redirect(url_for("dashboard.inicio"))
                     except ErrorUsuario as exc:
                         error = str(exc)
-                token_instalacion = obtener_token_instalacion(con)
             else:
                 if verificar(con, request.form.get("usuario", ""),
                              request.form.get("password", "")):
@@ -66,7 +68,7 @@ def login():
     finally:
         con.close()
     return render_template("login.html", primer_uso=primer_uso, error=error,
-                          token_instalacion=token_instalacion)
+                          token_archivo=token_archivo)
 
 
 @bp.route("/logout", methods=["GET", "POST"])

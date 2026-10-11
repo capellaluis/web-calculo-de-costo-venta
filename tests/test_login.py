@@ -32,14 +32,16 @@ def test_primer_uso_muestra_crear_usuario(db_temporal):
 
 
 def test_crear_usuario_y_entrar(db_temporal, con):
+    from services.usuarios import obtener_token_instalacion
     _activar_login()
     cliente = appmod.app.test_client()
 
-    # Obtener token en GET
-    get_resp = cliente.get("/login")
-    html = get_resp.get_data(as_text=True)
-    token = _obtener_token_instalacion(html)
-    assert token, "No se encontró token de instalación"
+    # Generar token en GET
+    cliente.get("/login")
+
+    # Obtener token de la base (en tests, el archivo no se crea)
+    token = obtener_token_instalacion(con)
+    assert token, "Token no generado"
 
     # Crear usuario con token
     respuesta = cliente.post("/login", data={

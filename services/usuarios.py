@@ -111,11 +111,13 @@ def limpiar_codigo_recuperacion(con):
     con.commit()
 
 
-def generar_token_instalacion(con):
+def generar_token_instalacion(con, ruta_archivo=None):
     """Genera un token alfanumérico de un solo uso para crear el primer admin.
 
     Solo se genera una vez. Si ya existe, devuelve el existente (sin regenerar).
+    Si ruta_archivo es dada, guarda el token en un archivo (ej: INSTALL_TOKEN.txt).
     """
+    from pathlib import Path
     token_actual = _leer(con, "install_token").get("install_token", "")
     if token_actual and token_actual != "USADO":
         return token_actual
@@ -123,6 +125,13 @@ def generar_token_instalacion(con):
     token = secrets.token_urlsafe(16)
     _guardar(con, "install_token", token)
     con.commit()
+
+    if ruta_archivo:
+        try:
+            Path(ruta_archivo).write_text(token, encoding="utf-8")
+        except (OSError, IOError):
+            pass  # No falla si no puede escribir (ej: tests)
+
     return token
 
 
