@@ -7,7 +7,7 @@ El logo se guarda como archivo en `static/uploads/`.
 from pathlib import Path
 
 CARPETA_UPLOADS = Path(__file__).resolve().parent.parent / "static" / "uploads"
-EXTENSIONES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"}
+EXTENSIONES = {".png", ".jpg", ".jpeg", ".gif", ".webp"}  # SVG: vulnera XSS
 TAMANO_MAXIMO = 2 * 1024 * 1024  # 2 MB
 NOMBRE_DEFECTO = "Mi Negocio"
 
@@ -48,7 +48,7 @@ def guardar_logo(con, archivo):
         raise ErrorNegocio("Elegí un archivo de imagen.")
     extension = Path(nombre).suffix.lower()
     if extension not in EXTENSIONES:
-        raise ErrorNegocio("Formato no permitido. Usá PNG, JPG, GIF, WEBP o SVG.")
+        raise ErrorNegocio("Formato no permitido. Usá PNG, JPG, GIF o WEBP.")
 
     archivo.seek(0, 2)
     tamano = archivo.tell()

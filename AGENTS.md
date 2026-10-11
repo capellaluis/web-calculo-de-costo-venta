@@ -15,11 +15,26 @@ para el uso diario.
 
 ---
 
-## ⚠️ Git Policy
+## ⚠️ Git Policy — CRÍTICO
 
-- **NUNCA** `git commit` sin pedido explícito ("haz commit", "dale commit", ...).
-- Commits con `conventional-commits-standard`. Sin atribución de IA.
-- **NUNCA** `git push` sin confirmación.
+### Commits (NUNCA sin pedido explícito)
+
+**REGLA OBLIGATORIA**: No hacer `git commit` NUNCA sin que el usuario lo pida explícitamente.
+
+Flujo correcto:
+1. Implementar cambios
+2. **SIEMPRE** indicar cómo probar ANTES de pedir commit (comandos, pasos específicos)
+3. Esperar confirmación del usuario ("haz commit", "dale commit", "commitea")
+4. Solo ENTONCES hacer `git commit`
+
+**NUNCA**:
+- Hacer commit automáticamente tras terminar un cambio
+- Asumir que "voy a commitear" es permiso
+- Saltarse la fase de prueba
+
+- Commits con `conventional-commits-standard` skill
+- Sin atribución de IA (global CLAUDE.md lo prohíbe)
+- **NUNCA** `git push` sin confirmación explícita
 
 ---
 
