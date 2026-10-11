@@ -298,6 +298,13 @@ a { color: inherit; text-decoration: none; }
 .menu-grupo summary i { font-size: .7rem; transition: transform .15s; }
 .menu-grupo:not([open]) summary i { transform: rotate(-90deg); }
 .menu-grupo { display: flex; flex-direction: column; gap: 6px; }
+.menu-grupo summary i { transition: transform .25s ease; }
+.menu-grupo:not([open]) summary i { transform: rotate(-90deg); }
+.menu-grupo > div { overflow: hidden; animation: desplegarse .35s cubic-bezier(0.4, 0, 0.2, 1); }
+@keyframes desplegarse {
+  from { opacity: 0; max-height: 0; }
+  to { opacity: 1; max-height: 500px; }
+}
 .menu-sesion { margin-top: auto; padding-top: 14px; }
 .nav-usuario { cursor: default; color: var(--texto-suave); }
 

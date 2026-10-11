@@ -26,9 +26,9 @@
 {% endmacro %}
 
 {% macro grupo(titulo, abierto=true) %}
-  <details class="menu-grupo"{{ ' open' if abierto }}>
+  <details class="menu-grupo">
     <summary class="menu-titulo">{{ titulo }}<i class="bi bi-chevron-down"></i></summary>
-    {{ caller() }}
+    <div>{{ caller() }}</div>
   </details>
 {% endmacro %}
 
