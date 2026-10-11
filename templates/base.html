@@ -35,6 +35,9 @@
 {# ===== TopBar (solo móvil) ===== #}
 <header class="topbar">
   <a class="marca" href="{{ url_for('dashboard.inicio') }}">{{ logo() }}<span>{{ negocio.nombre }}</span></a>
+  <button type="button" class="topbar-btn" data-tema-toggle aria-label="Cambiar tema">
+    <i class="bi bi-moon-stars-fill"></i>
+  </button>
   <button type="button" class="topbar-btn" id="botonMenu" aria-label="Abrir menú" aria-controls="menuLateral" aria-expanded="false">
     <i class="bi bi-list"></i>
   </button>
@@ -71,6 +74,9 @@
       <div class="nav-item nav-usuario">
         <i class="bi bi-person-circle"></i><span>{{ session.get('usuario', '') }}</span>
       </div>
+      <button type="button" class="nav-item" data-tema-toggle>
+        <i class="bi bi-moon-stars-fill"></i><span>Modo oscuro</span>
+      </button>
       <a class="nav-item" href="{{ url_for('auth.logout') }}">
         <i class="bi bi-box-arrow-right"></i><span>Salir</span>
       </a>
